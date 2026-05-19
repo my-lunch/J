@@ -12,7 +12,7 @@
         :root { --primary: #ff9f43; --danger: #e11d48; --success: #26de81; --bg: #f1f5f9; --dark: #1e293b; }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: block; color: var(--dark); }
         
-        /* 👑 頂部橫向工具欄 */
+        /* 頂部橫向工具欄 */
         .admin-toolbar { background: var(--dark); padding: 12px 25px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 15px; }
         .toolbar-left { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
         .toolbar-left input { padding: 8px 12px; border: 1px solid #444; background: #2d3748; color: white; border-radius: 6px; font-size: 14px; }
@@ -36,11 +36,11 @@
         /* 菜單圖片 */
         .menu-display { width: 100%; max-height: 450px; object-fit: contain; margin-top: 15px; display: none; border-radius: 12px; border: 1px dashed #cbd5e1; }
         
-        /* 數據看板 */
+        /* 數據看板 (依要求：字縮小一點，但極粗體) */
         .dashboard { display: flex; gap: 20px; }
-        .card { flex: 1; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
-        .card h3 { margin: 0 0 10px; color: #64748b; font-size: 16px; font-weight: bold; }
-        .card p { margin: 0; font-size: 36px; font-weight: 900; } 
+        .card { flex: 1; background: white; padding: 15px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+        .card h3 { margin: 0 0 8px; color: #64748b; font-size: 15px; font-weight: bold; }
+        .card p { margin: 0; font-size: 32px; font-weight: 900; } 
         .text-red { color: var(--danger); }
 
         /* 點餐表單 */
@@ -51,7 +51,7 @@
         .form-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; transition: 0.3s; box-sizing: border-box; }
         .form-group input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(255,159,67,0.2); }
         
-        /* 即時找零顯示框 */
+        /* 找零顯示框 */
         .live-change-box { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 10px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: 900; color: var(--dark); min-height: 45px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
         .live-change-box.has-change { color: var(--danger); background: #fff1f2; border-color: var(--danger); }
 
@@ -68,17 +68,16 @@
         .btn-edit:hover { background: #374151; }
         .btn-save { background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-save:hover { background: #1d4ed8; }
-        .btn-del { color: #cbd5e1; background: none; border: none; cursor: pointer; font-size: 18px; margin-left: 8px; }
-        .btn-del:hover { color: var(--danger); }
+        .btn-del { color: #cbd5e1; background: none; border: none; cursor: pointer; font-size: 16px; padding: 6px; margin-left: 5px; border-radius: 6px;}
+        .btn-del:hover { background: #fee2e2; color: var(--danger); }
 
         /* 內嵌編輯輸入框 */
-        .inline-input { padding: 6px; border: 1px solid var(--primary); border-radius: 4px; font-size: 14px; width: 90%; box-sizing: border-box; }
+        .inline-input { padding: 8px; border: 2px solid var(--primary); border-radius: 6px; font-size: 15px; width: 90%; box-sizing: border-box; font-weight: bold; }
 
         /* 統計彈窗 */
         #statsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 100px rgba(0,0,0,0.4); z-index: 100; min-width: 350px; max-width: 500px; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); z-index: 99; }
         
-        /* 統計列表細節 */
         .stats-header { font-size: 20px; font-weight: 900; color: var(--dark); margin-bottom: 15px; }
         .stats-total { font-size: 18px; font-weight: bold; color: #4b5563; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px dashed #cbd5e1; }
         .stats-list { max-height: 350px; overflow-y: auto; padding-right: 10px; }
@@ -130,10 +129,10 @@
         </div>
 
         <div class="form-section">
-            <h3 style="margin-top:0; border-bottom: 2px solid var(--bg); padding-bottom:10px;">🍔 點餐</h3>
+            <h3 style="margin-top:0; border-bottom: 2px solid var(--bg); padding-bottom:10px;">📝 點餐</h3>
             <div class="form-grid">
                 <div class="form-group"><label>姓名</label><input type="text" id="userName" placeholder="Joyce"></div>
-                <div class="form-group col-span-2"><label>品項</label><input type="text" id="userItem" placeholder="香煎培根燉飯"></div>
+                <div class="form-group col-span-2"><label>品項</label><input type="text" id="userItem" placeholder="蒜香清炒雞胸蛤蠣義大利麵"></div>
                 <div class="form-group"><label>應付</label><input type="number" id="price" placeholder="100" oninput="calculateLiveChange()"></div>
                 <div class="form-group"><label>實付</label><input type="number" id="pay" placeholder="0" oninput="calculateLiveChange()"></div>
                 
@@ -178,7 +177,6 @@
 
         let editingId = null;
 
-        // 即時找零計算
         function calculateLiveChange() {
             const price = parseInt(document.getElementById('price').value) || 0;
             const pay = parseInt(document.getElementById('pay').value) || 0;
@@ -194,12 +192,12 @@
             }
         }
 
-        // 1. 公告與時間
         database.ref('config/announcement').on('value', (s) => {
             const val = s.val() || { text: "收現金 / 收 LINE Pay", deadline: "未設定" };
             document.getElementById('announceText').innerText = "📢 " + val.text;
             document.getElementById('timeText').innerText = val.deadline;
         });
+        
         function updateAnnouncement() {
             const text = document.getElementById('annInput').value.trim();
             const time = document.getElementById('timeInput').value.trim();
@@ -210,7 +208,6 @@
             document.getElementById('annInput').value = ''; document.getElementById('timeInput').value = '';
         }
 
-        // 2. 菜單
         function uploadMenu(input) {
             if (input.files[0]) {
                 const reader = new FileReader();
@@ -223,13 +220,12 @@
             if (s.val()) { img.src = s.val(); img.style.display = 'block'; }
         });
 
-        // 3. 點餐
         function submitOrder() {
             const name = document.getElementById('userName').value.trim();
             const item = document.getElementById('userItem').value.trim();
             const price = parseInt(document.getElementById('price').value) || 0;
             const pay = parseInt(document.getElementById('pay').value) || 0;
-            if(!name || !item) return alert("請填寫姓名與品項內容");
+            if(!name || !item) return alert("請填寫姓名與品項內容！");
             database.ref('orders').push({ name, item, price, pay, isPaid: false });
             
             document.getElementById('userName').value = ''; document.getElementById('userItem').value = '';
@@ -245,37 +241,42 @@
             database.ref('orders').once('value', (snapshot) => renderTable(snapshot.val()));
         }
 
-        // 🚀 終極修復防卡死儲存邏輯 (使用 DOM Traversal 絕對鎖定)
-        function saveEdit(btn, id) {
-            try {
-                // 從按下的按鈕往上找，鎖定該行的所有輸入框
-                const tr = btn.closest('tr');
-                const inputs = tr.querySelectorAll('input');
-                
-                const newItem = inputs[0].value.trim();
-                const newPrice = parseInt(inputs[1].value) || 0;
-                const newPay = parseInt(inputs[2].value) || 0;
-
-                if (!newItem) {
-                    alert("品項不能為空！");
-                    return;
-                }
-
-                database.ref('orders').child(id).update({
-                    item: newItem,
-                    price: newPrice,
-                    pay: newPay
-                }).then(() => {
-                    editingId = null; // 儲存成功，重置狀態
-                }).catch(err => {
-                    alert("網路異常，儲存失敗：" + err.message);
-                });
-            } catch (e) {
-                alert("系統錯誤：" + e.message);
-            }
+        function cancelEdit() {
+            editingId = null;
+            database.ref('orders').once('value', (snapshot) => renderTable(snapshot.val()));
         }
 
-        // 4. 渲染表格
+        // 🚀 這次絕對修復的終極防卡死儲存邏輯 (精準 ID 定位)
+        function saveEdit(id) {
+            const elItem = document.getElementById(`editItem_${id}`);
+            const elPrice = document.getElementById(`editPrice_${id}`);
+            const elPay = document.getElementById(`editPay_${id}`);
+
+            if (!elItem || !elPrice || !elPay) {
+                alert("抓不到修改欄位，請重新整理網頁再試一次！");
+                return;
+            }
+
+            const newItem = elItem.value.trim();
+            const newPrice = parseInt(elPrice.value) || 0;
+            const newPay = parseInt(elPay.value) || 0;
+
+            if (!newItem) {
+                alert("品項不能是空白的喔！");
+                return;
+            }
+
+            database.ref('orders').child(id).update({
+                item: newItem,
+                price: newPrice,
+                pay: newPay
+            }).then(() => {
+                editingId = null; 
+            }).catch(err => {
+                alert("儲存失敗：" + err.message);
+            });
+        }
+
         function renderTable(orders) {
             const unpaidBody = document.getElementById('unpaidBody');
             const paidBody = document.getElementById('paidBody');
@@ -297,12 +298,12 @@
                         if (isEditing) {
                             paidBody.innerHTML += `<tr>
                                 <td><strong>${o.name}</strong></td>
-                                <td><input type="text" class="inline-input" value="${safeItem}"></td>
-                                <td><input type="number" class="inline-input" value="${o.price}"></td>
-                                <td><input type="number" class="inline-input" value="${o.pay}"></td>
+                                <td><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
+                                <td><input type="number" id="editPrice_${id}" class="inline-input" value="${o.price}"></td>
+                                <td><input type="number" id="editPay_${id}" class="inline-input" value="${o.pay}"></td>
                                 <td>
-                                    <button class="btn-save" onclick="saveEdit(this, '${id}')">💾 儲存</button>
-                                    <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
+                                    <button class="btn-save" onclick="saveEdit('${id}')">💾 儲存</button>
+                                    <button class="btn-del" onclick="cancelEdit()">取消</button>
                                 </td>
                             </tr>`;
                         } else {
@@ -321,12 +322,13 @@
                         if (isEditing) {
                             unpaidBody.innerHTML += `<tr>
                                 <td><strong>${o.name}</strong></td>
-                                <td><input type="text" class="inline-input" value="${safeItem}"></td>
-                                <td><input type="number" class="inline-input" value="${o.price}"></td>
-                                <td><input type="number" class="inline-input" value="${o.pay}"></td>
+                                <td><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
+                                <td><input type="number" id="editPrice_${id}" class="inline-input" value="${o.price}"></td>
+                                <td><input type="number" id="editPay_${id}" class="inline-input" value="${o.pay}"></td>
                                 <td>編輯中</td>
                                 <td>
-                                    <button class="btn-save" onclick="saveEdit(this, '${id}')">💾 儲存</button>
+                                    <button class="btn-save" onclick="saveEdit('${id}')">💾 儲存</button>
+                                    <button class="btn-del" onclick="cancelEdit()">取消</button>
                                 </td>
                             </tr>`;
                         } else {
@@ -349,7 +351,6 @@
                 });
             }
             
-            // 剩餘待收計算邏輯 (避免出現負數)
             let pending = tNeed - tGet;
             if (pending < 0) pending = 0;
 
@@ -362,7 +363,7 @@
             renderTable(snapshot.val());
         });
 
-        // 5. 終極拆單統計功能 (完美對齊圖一)
+        // 5. 終極拆單統計功能 
         function showStats() {
             database.ref('orders').once('value', (s) => {
                 const orders = s.val(); 
@@ -371,7 +372,6 @@
 
                 if(orders) {
                     Object.values(orders).forEach(o => { 
-                        // 自動拆單邏輯：用加號、逗號、斜線等符號將同行的品項切開
                         const splitItems = o.item.split(/[+＋,，、/]/);
                         splitItems.forEach(singleItem => {
                             const cleanedName = singleItem.trim();
@@ -383,14 +383,12 @@
                     }); 
                 }
 
-                // 總計標頭
-                document.getElementById('statsTotal').innerText = `總計：${totalItemsCount} 份`;
+                document.getElementById('statsTotal').innerText = `總共：${totalItemsCount} 份`;
 
-                // 統計清單
                 let html = '';
                 for(let k in stats) { 
                     html += `<div class="stats-item">
-                                <div class="stats-item-name">☕ ${k}</div>
+                                <div class="stats-item-name">🍱 ${k}</div>
                                 <div class="stats-item-count">× ${stats[k]}</div>
                              </div>`; 
                 }
@@ -407,3 +405,6 @@
     </script>
 </body>
 </html>
+
+
+
