@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天吃甚麼 - 團購點餐系統</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        body { font-family: 'Microsoft JhengHei', sans-serif; background: #f8f9fa; margin: 0; padding: 20px; display: flex; }
+        .sidebar { width: 200px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-right: 20px; }
+        .sidebar button { width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-orange { background: #ff9f43; color: white; }
+        .btn-purple { background: #a55eea; color: white; }
+        .main-content { flex: 1; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .dashboard { display: flex; gap: 20px; margin-bottom: 30px; }
+        .card { flex: 1; background: #f1f2f6; padding: 20px; border-radius: 8px; text-align: center; }
+        .card h3 { margin: 0 0 10px 0; color: #57606f; }
+        .card p { margin: 0; font-size: 24px; font-weight: bold; color: #2f3542; }
+        .form-section { background: #f1f2f6; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .form-group { display: inline-block; margin-right: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { padding: 8px; border: 1px solid #ced4da; border-radius: 4px; width: 150px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f1f2f6; }
+        .status-badge { background: #2ed573; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>團主工具</h2>
+        <button class="btn-orange">通知取餐</button>
+        <button class="btn-purple" onclick="clearOrders()">淨空訂單</button>
+    </div>
+
+    <div class="main-content">
+        <h2>今天吃甚麼 👑 團主</h2>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h3>總金額 (應付)</h3>
+                <p id="totalNeed">0</p>
+            </div>
+            <div class="card">
+                <h3>已收現金</h3>
+                <p id="totalGet">0</p>
+            </div>
+            <div class="card">
+                <h3>剩餘待收 / 找零總計</h3>
+                <p id="totalChange">0</p>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>新增點餐品項</h3>
+            <div class="form-group">
+                <label>姓名</label>
+                <input type="text" id="userName" placeholder="例如：Joyce">
+            </div>
+            <div class="form-group">
+                <label>品項</label>
+                <input type="text" id="userItem" placeholder="例如：青醬燉飯">
+            </div>
+            <div class="form-group">
+                <label>應付金額</label>
+                <input type="number" id="price" placeholder="例如：130">
+            </div>
+            <div class="form-group">
+                <label>輸入實付</label>
+                <input type="number" id="pay" placeholder="例如：200">
+            </div>
+            <button class="btn-orange" style="padding: 8px 20px; margin-top: 24px;" onclick="submitOrder()">送出點餐</button>
+        </div>
+
+        <h3>所有已付款/點餐區</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>姓名</th>
+                    <th>品項</th>
+                    <th>應付</th>
+                    <th>實收</th>
+                    <th>找零 / 狀態</th>
+                </tr>
+            </thead>
+            <tbody id="orderTableBody">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        // ⚠️ 這裡使用免費的測試公用資料庫，讓你不用註冊就能直接測試畫面！
+        const firebaseConfig = {
+            databaseURL: "https://test-order-system-default-rtdb.firebaseio.com/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // 送出點餐資料到雲端
+        function submitOrder() {
+            const name = document.getElementById('userName').value.trim();
+            const item = document.getElementById('userItem').value.trim();
+            const price = parseInt(document.getElementById('price').value) || 0;
+            const pay = parseInt(document.getElementById('pay').value) || 0;
+
+            if (name === "" || item === "") {
+                alert("請填寫姓名和品項！");
+                return;
+            }
+
+            // 把資料推送到 Firebase 雲端
+            database.ref('orders').push({
+                name: name,
+                item: item,
+                price: price,
+                pay: pay
+            });
+
+            // 清空輸入框
+            document.getElementById('userName').value = '';
+            document.getElementById('userItem').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('pay').value = '';
+        }
+
+        // 監聽雲端資料庫：只要資料一變動，自動刷新網頁表格與計算金額
+        database.ref('orders').on('value', (snapshot) => {
+            const tableBody = document.getElementById('orderTableBody');
+            tableBody.innerHTML = ''; // 清空舊表格
+
+            let totalNeed = 0;
+            let totalGet = 0;
+            let totalChange = 0;
+
+            const data = snapshot.val();
+            if (data) {
+                Object.keys(data).forEach((key) => {
+                    const order = data[key];
+                    const change = order.pay - order.price; // 計算找零
+
+                    // 累加總金額
+                    totalNeed += order.price;
+                    totalGet += order.pay;
+                    totalChange += change;
+
+                    // 建立表格橫列
+                    const row = `<tr>
+                        <td><strong>${order.name}</strong></td>
+                        <td>${order.item}</td>
+                        <td>$${order.price}</td>
+                        <td style="color: green;">$${order.pay}</td>
+                        <td>${change > 0 ? `<span style="color: red;">找零 $${change}</span>` : '<span class="status-badge">剛好</span>'}</td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            }
+
+            // 更新畫面上方的數字看板
+            document.getElementById('totalNeed').innerText = totalNeed;
+            document.getElementById('totalGet').innerText = totalGet;
+            document.getElementById('totalChange').innerText = totalChange;
+        });
+
+        // 團主一鍵清空所有訂單
+        function clearOrders() {
+            if (confirm("確定要淨空所有點餐資料嗎？")) {
+                database.ref('orders').remove();
+            }
+        }
+    </script>
+</body>
+</html>
