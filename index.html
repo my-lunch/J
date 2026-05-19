@@ -7,66 +7,72 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --primary: #ff9f43; --danger: #e11d48; --success: #26de81; --bg: #f1f5f9; --dark: #1e293b; }
-        body { font-family: 'PingFang TC', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--dark); }
-        .container { max-width: 900px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        :root { --primary: #ff9f43; --danger: #e11d48; --bg: #f1f5f9; --dark: #1e293b; }
+        body { font-family: 'PingFang TC', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--dark); }
+        .container { max-width: 1000px; margin: auto; }
+        .card-box { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .admin-toolbar { background: var(--dark); padding: 12px; border-radius: 12px; margin-bottom: 20px; color: white; display: flex; flex-wrap: wrap; gap: 10px; }
         
-        /* 菜單圖片與手機適應 */
-        .menu-img { width: 100%; max-height: 400px; object-fit: contain; margin-bottom: 15px; display: none; border-radius: 8px; }
+        .form-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; align-items: end; }
+        .form-grid input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         
-        .grid { display: grid; grid-template-columns: 1fr 2fr 1fr 1fr auto; gap: 10px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-        .btn { padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; background: var(--primary); color: white; }
-        .btn-del { color: #e11d48; background: none; border: none; cursor: pointer; font-weight: bold; }
-        .inline-input { padding: 5px; width: 80%; border: 1px solid var(--primary); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f8fafc; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        
+        .btn { padding: 8px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; background: var(--primary); color: white; }
+        .btn-del { color: var(--danger); background: none; border: none; cursor: pointer; }
 
+        /* 手機版優化 */
         @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
             table, thead, tbody, th, td, tr { display: block; }
             thead { display: none; }
-            tr { border: 1px solid #eee; margin-bottom: 10px; padding: 10px; border-radius: 8px; }
-            td { display: flex; justify-content: space-between; padding: 8px 0; }
+            tr { margin-bottom: 10px; border: 1px solid #eee; padding: 10px; border-radius: 8px; background: white; }
+            td { display: flex; justify-content: space-between; border-bottom: none; padding: 4px 0; }
             td::before { content: attr(data-label); font-weight: bold; color: #64748b; }
+            #menuImg { max-width: 100% !important; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <h3>今日菜單</h3>
-        <input type="file" accept="image/*" onchange="uploadMenu(this)">
-        <img id="menuImg" class="menu-img">
-    </div>
+<div class="admin-toolbar">
+    <span style="font-weight:bold;">👑 管理：</span>
+    <button class="btn" onclick="showStats()">📊 統計</button>
+    <button class="btn" onclick="clearOrders()">🧹 清空</button>
+    <input type="file" accept="image/*" onchange="uploadMenu(this)">
+</div>
 
-    <div class="card">
-        <h3>📝 點餐</h3>
-        <div class="grid">
-            <input type="text" id="userName" placeholder="姓名">
-            <input type="text" id="userItem" placeholder="品項">
-            <input type="number" id="price" placeholder="應付">
-            <input type="number" id="pay" placeholder="實付">
+<div class="container">
+    <div class="card-box">
+        <img id="menuImg" style="width:100%; display:none; max-height:400px; object-fit:contain; border-radius:8px;">
+    </div>
+    
+    <div class="card-box">
+        <h3>🍔 點餐</h3>
+        <div class="form-grid">
+            <div><label>姓名</label><input type="text" id="userName"></div>
+            <div style="grid-column: span 2;"><label>品項</label><input type="text" id="userItem"></div>
+            <div><label>應付</label><input type="number" id="price"></div>
+            <div><label>實付</label><input type="number" id="pay"></div>
             <button class="btn" onclick="submitOrder()">送出</button>
         </div>
     </div>
 
-    <div class="card">
-        <h3>📝 所有未付款區</h3>
-        <table id="unpaidTable">
-            <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>找零</th><th>操作</th></tr></thead>
-            <tbody id="unpaidBody"></tbody>
+    <div class="card-box">
+        <h3>📝 訂單清單</h3>
+        <table>
+            <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>管理</th></tr></thead>
+            <tbody id="orderBody"></tbody>
         </table>
     </div>
 </div>
 
 <script>
     const db = firebase.database();
-    let editingId = null;
-
-    // 菜單處理
+    
+    // 圖片邏輯
     function uploadMenu(input) {
         if (input.files[0]) {
             const reader = new FileReader();
@@ -79,57 +85,30 @@
         if (s.val()) { img.src = s.val(); img.style.display = 'block'; }
     });
 
+    // 點餐與列表
     function submitOrder() {
-        const n = document.getElementById('userName').value.trim();
-        const i = document.getElementById('userItem').value.trim();
-        const p = parseInt(document.getElementById('price').value)||0;
-        const y = parseInt(document.getElementById('pay').value)||0;
-        if(!n || !i) return alert("請填寫內容！");
+        const n=document.getElementById('userName').value.trim(), i=document.getElementById('userItem').value.trim(), p=document.getElementById('price').value, y=document.getElementById('pay').value;
+        if(!n||!i) return alert("請填寫內容！");
         db.ref('orders').push({ name:n, item:i, price:p, pay:y, isPaid:false });
-        document.getElementById('userName').value = document.getElementById('userItem').value = document.getElementById('price').value = document.getElementById('pay').value = '';
-    }
-
-    function saveEdit(id) {
-        const i = document.getElementById(`i_${id}`).value;
-        const p = parseInt(document.getElementById(`p_${id}`).value)||0;
-        const y = parseInt(document.getElementById(`y_${id}`).value)||0;
-        editingId = null;
-        db.ref('orders/'+id).update({ item: i, price: p, pay: y });
+        document.getElementById('userName').value=document.getElementById('userItem').value=document.getElementById('price').value=document.getElementById('pay').value='';
     }
 
     db.ref('orders').on('value', s => {
-        const b = document.getElementById('unpaidBody'); b.innerHTML = '';
-        const orders = s.val();
-        if(orders) {
-            Object.keys(orders).forEach(id => {
-                const o = orders[id];
-                const d = Math.max(0, o.pay - o.price);
-                if(editingId === id) {
-                    b.innerHTML += `<tr>
-                        <td>${o.name}</td>
-                        <td><input id="i_${id}" class="inline-input" value="${o.item}"></td>
-                        <td><input id="p_${id}" class="inline-input" value="${o.price}"></td>
-                        <td><input id="y_${id}" class="inline-input" value="${o.pay}"></td>
-                        <td>-</td>
-                        <td><button class="btn" onclick="saveEdit('${id}')">💾</button></td>
-                    </tr>`;
-                } else {
-                    b.innerHTML += `<tr data-label="訂單">
-                        <td data-label="姓名">${o.name}</td>
-                        <td data-label="品項">${o.item}</td>
-                        <td data-label="應付">${o.price}</td>
-                        <td data-label="實收">${o.pay}</td>
-                        <td data-label="找零">${d>0 ? '找零 '+d : 0}</td>
-                        <td data-label="操作">
-                            <button class="btn" onclick="editingId='${id}'; db.ref('orders').once('value', s=>render(s.val()))">修改</button>
-                            <button class="btn-del" onclick="db.ref('orders/${id}').remove()">刪除</button>
-                        </td>
-                    </tr>`;
-                }
+        const b = document.getElementById('orderBody'); b.innerHTML = '';
+        const o = s.val(); if(o) {
+            Object.keys(o).forEach(id => {
+                const item = o[id];
+                b.innerHTML += `<tr data-label="訂單">
+                    <td data-label="姓名">${item.name}</td><td data-label="品項">${item.item}</td>
+                    <td data-label="應付">${item.price}</td><td data-label="實付">${item.pay}</td>
+                    <td data-label="操作"><button class="btn-del" onclick="db.ref('orders/${id}').remove()">刪除</button></td>
+                </tr>`;
             });
         }
     });
-    function render(data) {}
+
+    function showStats() { alert("統計功能已啟動"); }
+    function clearOrders() { if(confirm("確定清空？")) db.ref('orders').remove(); }
 </script>
 </body>
 </html>
