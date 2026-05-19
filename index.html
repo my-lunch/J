@@ -43,7 +43,7 @@
         .card p { margin: 0; font-size: 36px; font-weight: 900; } 
         .text-red { color: var(--danger); }
 
-        /* 📝 點餐表單 */
+        /* 📋 點餐表單 */
         .form-section { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .form-grid { display: grid; grid-template-columns: 1.2fr 2fr 1fr 1fr 1fr 1.2fr; gap: 25px; align-items: end; } 
         .form-group label { display: block; margin-bottom: 10px; font-weight: 900; font-size: 15px; color: var(--dark); }
@@ -51,7 +51,7 @@
         .form-group input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(255,159,67,0.2); }
         
         /* 點餐自動計算找零格 */
-        .live-change-box { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 10px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: 900; color: var(--dark); min-height: 45px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+        .live-change-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; text-align: center; font-size: 16px; font-weight: 900; color: var(--dark); min-height: 45px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
         .live-change-box.has-change { color: var(--danger); background: #fff1f2; border-color: var(--danger); }
 
         /* 表格區 */
@@ -61,12 +61,15 @@
         th { text-align: left; background: #f8fafc; padding: 15px; color: #64748b; font-weight: bold; }
         td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 16px; }
         
-        /* 精簡化按鈕樣式 */
-        .btn-confirm { background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; margin-right: 3px; }
-        .btn-edit { background: #4b5563; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        /* ✨ 縮小版操作按鈕 */
+        .btn-small { padding: 4px 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .btn-confirm { background: var(--success); color: white; margin-right: 3px; }
+        .btn-edit { background: #4b5563; color: white; margin-right: 3px; }
         .btn-edit:hover { background: #374151; }
-        .btn-save { background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; }
-        .btn-del { color: #cbd5e1; background: none; border: none; cursor: pointer; font-size: 13px; font-weight: bold; margin-left: 5px; padding: 0; }
+        .btn-save { background: var(--success); color: white; }
+        
+        /* ✨ 超小巧 ❌ 刪除按鈕 */
+        .btn-del { color: #cbd5e1; background: none; border: none; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 5px; padding: 2px; }
         .btn-del:hover { color: var(--danger); }
 
         /* 內嵌編輯輸入框 */
@@ -120,7 +123,7 @@
         </div>
 
         <div class="form-section">
-            <h3 style="margin-top:0; border-bottom: 2px solid var(--bg); padding-bottom:10px;">📝 點餐</h3>
+            <h3 style="margin-top:0; border-bottom: 2px solid var(--bg); padding-bottom:10px;">📋 點餐</h3>
             <div class="form-grid">
                 <div class="form-group"><label>姓名</label><input type="text" id="userName" placeholder="Joyce"></div>
                 <div class="form-group"><label>品項</label><input type="text" id="userItem" placeholder="香煎培根燉飯"></div>
@@ -128,7 +131,7 @@
                 <div class="form-group"><label>輸入實付</label><input type="number" id="pay" placeholder="0" oninput="calculateLiveChange()"></div>
                 
                 <div class="form-group">
-                    <label>找零提示</label>
+                    <label>找零</label>
                     <div id="liveChangeDisplay" class="live-change-box">0</div>
                 </div>
 
@@ -139,7 +142,7 @@
         <div class="table-container">
             <h3 style="color:var(--danger)">⚠️ 所有未付款區</h3>
             <table id="unpaidTable">
-                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>找零狀態</th><th>管理操作</th></tr></thead>
+                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>找零</th><th>管理操作</th></tr></thead>
                 <tbody id="unpaidBody"></tbody>
             </table>
         </div>
@@ -167,7 +170,7 @@
 
         let editingId = null;
 
-        // 即時計算點餐框的找零
+        // 點餐實付後方自動計算找零
         function calculateLiveChange() {
             const price = parseInt(document.getElementById('price').value) || 0;
             const pay = parseInt(document.getElementById('pay').value) || 0;
@@ -175,7 +178,7 @@
             
             const diff = pay - price;
             if (diff > 0) {
-                changeDisplay.innerText = "找 " + diff;
+                changeDisplay.innerText = "找" + diff;
                 changeDisplay.classList.add('has-change');
             } else {
                 changeDisplay.innerText = "0";
@@ -212,7 +215,7 @@
             if (s.val()) { img.src = s.val(); img.style.display = 'block'; }
         });
 
-        // 3. 點餐與收款邏輯
+        // 3. 點餐與收款邏輯（預設未付款，送出後自動跳入未付款區）
         function submitOrder() {
             const name = document.getElementById('userName').value.trim();
             const item = document.getElementById('userItem').value.trim();
@@ -232,14 +235,14 @@
             database.ref('orders').once('value', (snapshot) => renderTable(snapshot.val()));
         }
 
-        // 🚀 全新流暢「下一步」儲存機制：精準動態抓取欄位並直接覆蓋
+        // 🚀 核心優化：全新獨立防卡死「下一步」儲存機制
         function saveEdit(id) {
             const inputItem = document.getElementById(`editItem-${id}`);
             const inputPrice = document.getElementById(`editPrice-${id}`);
             const inputPay = document.getElementById(`editPay-${id}`);
 
             if (!inputItem || !inputPrice || !inputPay) {
-                alert("抓取欄位失敗，請重試！");
+                alert("讀取編輯欄位錯誤，請重試！");
                 editingId = null;
                 return;
             }
@@ -250,16 +253,17 @@
 
             if(!newItem) return alert("品項不能為空");
 
+            // ✨ 同步解除編輯鎖，防止 Firebase 監聽器 Race Condition 卡死畫面
+            editingId = null;
+
             database.ref('orders').child(id).update({
                 item: newItem,
                 price: newPrice,
                 pay: newPay
-            }).then(() => {
-                editingId = null; // 成功儲存，自動跳出編輯視圖
             });
         }
 
-        // 4. 表格渲染邏輯
+        // 4. 渲染邏輯
         function renderTable(orders) {
             const unpaidBody = document.getElementById('unpaidBody');
             const paidBody = document.getElementById('paidBody');
@@ -284,8 +288,8 @@
                                 <td><input type="number" id="editPrice-${id}" class="inline-input" value="${o.price}"></td>
                                 <td><input type="number" id="editPay-${id}" class="inline-input" value="${o.pay}"></td>
                                 <td>
-                                    <button class="btn-save" onclick="saveEdit('${id}')">➡️ 下一步</button>
-                                    <button class="btn-del" style="font-size:11px;" onclick="deleteOrder('${id}')">❌</button>
+                                    <button class="btn-small btn-save" onclick="saveEdit('${id}')">➡️ 下一步</button>
+                                    <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
                                 </td>
                             </tr>`;
                         } else {
@@ -295,8 +299,8 @@
                                 <td>$${o.price}</td>
                                 <td style="color:var(--success); font-weight:900;">$${o.pay}</td>
                                 <td>
-                                    <button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button>
-                                    <button class="btn-del" style="font-size:11px;" onclick="deleteOrder('${id}')">❌</button>
+                                    <button class="btn-small btn-edit" onclick="startEdit('${id}')">✏️ 修改</button>
+                                    <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
                                 </td>
                             </tr>`;
                         }
@@ -307,14 +311,14 @@
                                 <td><input type="text" id="editItem-${id}" class="inline-input" value="${o.item}"></td>
                                 <td><input type="number" id="editPrice-${id}" class="inline-input" value="${o.price}"></td>
                                 <td><input type="number" id="editPay-${id}" class="inline-input" value="${o.pay}"></td>
-                                <td style="color:#aaa; font-size:13px;">編輯中</td>
+                                <td style="color:#aaa; font-size:12px;">修改中</td>
                                 <td>
-                                    <button class="btn-save" onclick="saveEdit('${id}')">➡️ 下一步</button>
+                                    <button class="btn-small btn-save" onclick="saveEdit('${id}')">➡️ 下一步</button>
                                 </td>
                             </tr>`;
                         } else {
-                            // 找零狀態在未付款區完美呈現
-                            const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 $${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">$0</span>`;
+                            // 找零狀態在未付款區完美呈現（有找零跳出找多少，沒有則跳出 0）
+                            const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">0</span>`;
 
                             unpaidBody.innerHTML += `<tr>
                                 <td><strong>${o.name}</strong></td>
@@ -323,9 +327,9 @@
                                 <td style="color:#94a3b8">$${o.pay}</td>
                                 <td>${changeText}</td>
                                 <td>
-                                    <button class="btn-confirm" onclick="markPaid('${id}')">✓ 確認收款</button>
-                                    <button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button>
-                                    <button class="btn-del" style="font-size:11px;" onclick="deleteOrder('${id}')">❌</button>
+                                    <button class="btn-small btn-confirm" onclick="markPaid('${id}')">✓ 確認收款</button>
+                                    <button class="btn-small btn-edit" onclick="startEdit('${id}')">✏️ 修改</button>
+                                    <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
                                 </td>
                             </tr>`;
                         }
@@ -358,4 +362,6 @@
     </script>
 </body>
 </html>
+
+
 
