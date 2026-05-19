@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>今天吃甚麼 2.5 - 團主專業版</title>
+    <title>今天吃甚麼 3.0 - 團主專業版</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -24,27 +24,28 @@
         /* 主內容區 */
         .main-content { flex: 1; display: flex; flex-direction: column; gap: 25px; }
         
-        /* 頂部狀態與菜單編輯區 */
+        /* 頂部極簡公告區 */
         .top-banner { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .status-control-panel { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid var(--primary); }
-        .status-item { font-size: 16px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 14px; color: white; font-weight: bold; }
-        .badge-on { background: var(--success); }
-        .badge-off { background: #747d8c; }
-        .time-display { font-size: 20px; color: var(--danger); font-weight: bold; }
-
+        .announcement-box { background: #fff2e6; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid var(--primary); font-size: 16px; font-weight: bold; }
+        
+        .control-row { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-bottom: 15px; }
+        .control-group { display: flex; align-items: center; gap: 8px; font-weight: bold; }
+        .control-group input { padding: 6px; border: 1px solid #ddd; border-radius: 4px; }
+        
+        .time-heavy { font-size: 24px; color: #b30000; font-weight: 900; background: #ffe6e6; padding: 4px 12px; border-radius: 6px; }
         .menu-display { width: 100%; max-height: 400px; object-fit: contain; margin-top: 15px; display: none; border-radius: 10px; border: 1px solid #ddd; }
         
-        /* 數據看板 */
+        /* 數據看板 - 字體小縮小並加粗 */
         .dashboard { display: flex; gap: 20px; }
-        .card { flex: 1; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
-        .card h3 { margin: 0 0 10px; color: #747d8c; font-size: 16px; }
-        .card p { margin: 0; font-size: 32px; font-weight: bold; }
-        .text-red { color: var(--danger); }
+        .card { flex: 1; background: white; padding: 15px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+        .card h3 { margin: 0 0 5px; color: #747d8c; font-size: 14px; }
+        .card p { margin: 0; font-size: 24px; font-weight: bold; }
+        .text-red { color: var(--danger); font-weight: bold; }
 
         /* 輸入表單 */
         .form-section { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; align-items: end; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; align-items: end; }
+        .form-grid-full { grid-column: 1 / -1; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
 
@@ -55,6 +56,11 @@
         th { text-align: left; background: #f8f9fa; padding: 12px; color: #747d8c; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
         
+        /* 收款與刪除按鈕 */
+        .btn-check { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-check:hover { background: #20bf6b; }
+        .btn-del { background: none; border: none; cursor: pointer; font-size: 16px; }
+
         /* 品項統計彈窗 */
         #statsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 50px rgba(0,0,0,0.3); z-index: 100; min-width: 300px; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99; }
@@ -72,28 +78,30 @@
     <div class="main-content">
         
         <div class="top-banner">
-            <h3 style="margin-top:0; color:var(--dark)">📢 開團狀態與菜單設定</h3>
+            <div id="announceDisplay" class="announcement-box">📢 歡迎點餐！</div>
+            <div style="margin-bottom: 15px; font-weight: bold;">
+                <span>截止時間：</span>
+                <span id="timeText" class="time-heavy">未設定</span>
+            </div>
             
-            <div class="status-control-panel">
-                <div class="status-item">
-                    <span>收現金：</span>
-                    <span id="cashBadge" class="status-badge badge-off">關閉</span>
-                    <button style="padding:4px 8px; font-size:12px;" onclick="toggleStatus('cash')">切換</button>
+            <div class="status-control-panel" style="background: #f8f9fa; padding: 15px; border-radius: 10px;">
+                <div class="control-row">
+                    <div class="control-group">
+                        <label>編輯公告：</label>
+                        <input type="text" id="annTextInput" placeholder="例如：收現金/LINE Pay" style="width: 250px;">
+                    </div>
+                    <div class="control-group">
+                        <label>設定時間：</label>
+                        <input type="text" id="timeInput" placeholder="例如 11:00" style="width: 100px;">
+                    </div>
+                    <button class="btn-orange" style="padding: 6px 15px; font-size:14px; border:none; border-radius:4px; cursor:pointer;" onclick="updateBanner()">同步公告與時間</button>
                 </div>
-                <div class="status-item">
-                    <span>收 PAY：</span>
-                    <span id="payBadge" class="status-badge badge-off">關閉</span>
-                    <button style="padding:4px 8px; font-size:12px;" onclick="toggleStatus('pay')">切換</button>
-                </div>
-                <div class="status-item" style="margin-left: 10px;">
-                    <span>截止時間：</span>
-                    <span id="timeText" class="time-display">未設定</span>
-                    <input type="text" id="timeInput" placeholder="例如 11:00" style="width:90px; padding:4px; margin-left:5px;">
-                    <button style="padding:4px 8px; font-size:12px;" onclick="updateDeadline()">設定</button>
+                <div style="margin-top: 10px;">
+                    <label style="font-weight:bold; margin-right:8px;">上傳菜單：</label>
+                    <input type="file" id="menuUpload" accept="image/*" onchange="uploadMenu(this)">
                 </div>
             </div>
 
-            <input type="file" id="menuUpload" accept="image/*" onchange="uploadMenu(this)">
             <img id="menuImg" class="menu-display">
         </div>
 
@@ -118,15 +126,19 @@
                 <div class="form-group"><label>姓名</label><input type="text" id="userName" placeholder="例如：Joyce"></div>
                 <div class="form-group"><label>品項</label><input type="text" id="userItem" placeholder="例如：香煎培根燉飯"></div>
                 <div class="form-group"><label>應付金額</label><input type="number" id="price" placeholder="100"></div>
-                <div class="form-group"><label>輸入實付</label><input type="number" id="pay" placeholder="0"></div>
-                <button class="btn-orange" onclick="submitOrder()">送出點餐</button>
+                <div class="form-group"><label>輸入實付</label><input type="number" id="pay" placeholder="例如：200"></div>
+                <div class="form-group form-grid-full">
+                    <label>備註（辣度/糖度/備註說明）</label>
+                    <input type="text" id="userNote" placeholder="例如：微糖去冰 / 不要洋蔥 / 已轉帳">
+                </div>
+                <button class="btn-orange" style="grid-column: span 1; height: 38px;" onclick="submitOrder()">送出點餐</button>
             </div>
         </div>
 
         <div class="table-container">
-            <h3 style="color:var(--danger)">⚠️ 所有未付款區</h3>
+            <h3 style="color:var(--danger)">⚠️ 所有未付款區 (點餐後自動進入此區)</h3>
             <table id="unpaidTable">
-                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>操作</th></tr></thead>
+                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>備註</th><th>團主操作</th></tr></thead>
                 <tbody id="unpaidBody"></tbody>
             </table>
         </div>
@@ -134,7 +146,7 @@
         <div class="table-container">
             <h3 style="color:var(--success)">✅ 所有已付款區</h3>
             <table id="paidTable">
-                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>找零/狀態</th><th>操作</th></tr></thead>
+                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>找零狀態</th><th>備註</th><th>刪除</th></tr></thead>
                 <tbody id="paidBody"></tbody>
             </table>
         </div>
@@ -153,39 +165,27 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        let currentStatus = { cash: false, pay: false };
-
-        // 1. 開團狀態監聽 (現金、PAY、截止時間)
-        database.ref('config/status').on('value', (s) => {
-            const val = s.val() || { cash: false, pay: false, deadline: "未設定" };
-            currentStatus = val;
-            
-            // 更新現金標籤
-            const cashBadge = document.getElementById('cashBadge');
-            if(val.cash) { cashBadge.innerText = "開啟中"; cashBadge.className = "status-badge badge-on"; }
-            else { cashBadge.innerText = "關閉"; cashBadge.className = "status-badge badge-off"; }
-
-            // 更新 PAY 標籤
-            const payBadge = document.getElementById('payBadge');
-            if(val.pay) { payBadge.innerText = "開啟中"; payBadge.className = "status-badge badge-on"; }
-            else { payBadge.innerText = "關閉"; payBadge.className = "status-badge badge-off"; }
-
-            // 更新截止時間
-            document.getElementById('timeText').innerText = val.deadline || "未設定";
+        // 1. 監聽團主自訂公告與時間
+        database.ref('config/announcement').on('value', (s) => {
+            const val = s.val() || { text: "歡迎點餐！", deadline: "未設定" };
+            document.getElementById('announceDisplay').innerText = "📢 " + val.text;
+            document.getElementById('timeText').innerText = val.deadline;
         });
 
-        // 團主切換狀態功能
-        function toggleStatus(type) {
-            currentStatus[type] = !currentStatus[type];
-            database.ref('config/status').update(currentStatus);
-        }
+        // 團主更新公告與時間
+        function updateBanner() {
+            const txt = document.getElementById('annTextInput').value.trim();
+            const time = document.getElementById('timeInput').value.trim();
+            
+            const updates = {};
+            if(txt) updates.text = txt;
+            if(time) updates.deadline = time + " 截止";
 
-        // 團主更新截止時間
-        function updateDeadline() {
-            const timeVal = document.getElementById('timeInput').value.trim();
-            if(!timeVal) return alert("請輸入時間");
-            database.ref('config/status').child('deadline').set(timeVal + " 收");
-            document.getElementById('timeInput').value = '';
+            if(txt || time) {
+                database.ref('config/announcement').update(updates);
+                document.getElementById('annTextInput').value = '';
+                document.getElementById('timeInput').value = '';
+            }
         }
 
         // 2. 菜單圖片上傳
@@ -204,22 +204,31 @@
             if (s.val()) { img.src = s.val(); img.style.display = 'block'; }
         });
 
-        // 3. 點餐提交
+        // 3. 點餐提交 (一律自動設定付款狀態為 false，進入未付款區)
         function submitOrder() {
             const name = document.getElementById('userName').value.trim();
             const item = document.getElementById('userItem').value.trim();
             const price = parseInt(document.getElementById('price').value) || 0;
             const pay = parseInt(document.getElementById('pay').value) || 0;
+            const note = document.getElementById('userNote').value.trim() || "無";
+            
             if(!name || !item) return alert("請填寫姓名與品項");
 
-            database.ref('orders').push({ name, item, price, pay });
+            database.ref('orders').push({ name, item, price, pay, note, isPaid: false });
+            
             document.getElementById('userName').value = '';
             document.getElementById('userItem').value = '';
             document.getElementById('price').value = '';
             document.getElementById('pay').value = '';
+            document.getElementById('userNote').value = '';
         }
 
-        // 4. 計算與分區渲染
+        // 團主點擊確認收款，移至已付款區
+        function markAsPaid(id) {
+            database.ref('orders').child(id).update({ isPaid: true });
+        }
+
+        // 4. 計算與分區渲染邏輯
         database.ref('orders').on('value', (snapshot) => {
             const unpaidBody = document.getElementById('unpaidBody');
             const paidBody = document.getElementById('paidBody');
@@ -232,22 +241,33 @@
                 Object.keys(orders).forEach(id => {
                     const o = orders[id];
                     tNeed += o.price;
-                    tGet += o.pay;
-                    tChange += (o.pay - o.price);
+                    
+                    // 如果被移到了已付款，才將實收與找零納入統計
+                    if (o.isPaid) {
+                        tGet += o.pay;
+                        tChange += (o.pay - o.price);
 
-                    const row = `<tr>
-                        <td><strong>${o.name}</strong></td>
-                        <td>${o.item}</td>
-                        <td>$${o.price}</td>
-                        <td style="color:green; font-weight:bold;">$${o.pay}</td>
-                        ${o.pay >= o.price ? `<td><span style="color:red; font-weight:bold;">找零 $${o.pay-o.price}</span></td>` : ''}
-                        <td><button style="border:none; background:none; cursor:pointer;" onclick="deleteOrder('${id}')">❌</button></td>
-                    </tr>`;
-
-                    if (o.pay >= o.price && o.pay > 0) {
-                        paidBody.innerHTML += row;
+                        const rowPaid = `<tr>
+                            <td><strong>${o.name}</strong></td>
+                            <td>${o.item}</td>
+                            <td>$${o.price}</td>
+                            <td style="color:green; font-weight:bold;">$${o.pay}</td>
+                            <td><span style="color:red; font-weight:bold;">找零 $${o.pay-o.price}</span></td>
+                            <td style="color:#666; font-size:14px;">${o.note}</td>
+                            <td><button class="btn-del" onclick="deleteOrder('${id}')">❌</button></td>
+                        </tr>`;
+                        paidBody.innerHTML += rowPaid;
                     } else {
-                        unpaidBody.innerHTML += row;
+                        // 所有人剛點完，未付款狀態
+                        const rowUnpaid = `<tr>
+                            <td><strong>${o.name}</strong></td>
+                            <td>${o.item}</td>
+                            <td>$${o.price}</td>
+                            <td style="color:#747d8c;">$${o.pay}</td>
+                            <td style="color:#666; font-size:14px;">${o.note}</td>
+                            <td><button class="btn-check" onclick="markAsPaid('${id}')">✓ 確認收款</button></td>
+                        </tr>`;
+                        unpaidBody.innerHTML += rowUnpaid;
                     }
                 });
             }
@@ -266,7 +286,7 @@
                         stats[o.item] = (stats[o.item] || 0) + 1;
                     });
                 }
-                let html = '<ul style="list-style:none; padding:0; font-size:18px; line-height:2px;">';
+                let html = '<ul style="list-style:none; padding:0; font-size:18px;">';
                 for(let name in stats) { 
                     html += `<li style="padding:10px 0; border-bottom:1px solid #eee;">🍱 <strong>${name}</strong>： <span style="color:var(--primary); font-weight:bold; font-size:20px;">${stats[name]}</span> 份</li>`; 
                 }
@@ -283,7 +303,7 @@
         }
 
         function notifyPickup() { alert("已通知大家取餐！"); }
-        function deleteOrder(id) { if(confirm("確定刪除此筆？")) database.ref('orders').child(id).remove(); }
+        function deleteOrder(id) { if(confirm("確定刪除此筆點餐？")) database.ref('orders').child(id).remove(); }
         function clearOrders() { if(confirm("確定淨空所有點餐與付款資料？")) database.ref('orders').remove(); }
     </script>
 </body>
