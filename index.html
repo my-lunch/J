@@ -1,36 +1,408 @@
-// 修改後的 saveEdit
-function saveEdit(id) {
-    const elItem = document.getElementById(`editItem_${id}`);
-    const elPrice = document.getElementById(`editPrice_${id}`);
-    const elPay = document.getElementById(`editPay_${id}`);
-
-    if (!elItem || !elPrice || !elPay) {
-        alert("找不到編輯欄位，請重新整理！");
-        return;
-    }
-
-    const newItem = elItem.value.trim();
-    const newPrice = parseInt(elPrice.value) || 0;
-    const newPay = parseInt(elPay.value) || 0;
-
-    if (!newItem) {
-        alert("品項不能是空白的喔！");
-        return;
-    }
-
-    // 關鍵修改：先重置狀態，再發送更新
-    editingId = null; 
-
-    database.ref('orders').child(id).update({
-        item: newItem,
-        price: newPrice,
-        pay: newPay
-    }).catch(err => {
-        alert("儲存失敗：" + err.message);
-        // 如果失敗，則恢復編輯狀態
-        editingId = id;
-        renderTable(currentOrdersData); // 這裡需要能取得當前資料
-    });
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天吃什麼</title>
     
-    // 不要在這裡呼叫 renderTable，Firebase 的 .on('value') 會自動幫你做
-}
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root { --primary: #ff9f43; --danger: #e11d48; --success: #26de81; --bg: #f1f5f9; --dark: #1e293b; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: block; color: var(--dark); }
+        
+        /* 👑 頂部橫向工具欄 */
+        .admin-toolbar { background: var(--dark); padding: 12px 25px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 15px; }
+        .toolbar-left { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
+        .toolbar-left input { padding: 8px 12px; border: 1px solid #444; background: #2d3748; color: white; border-radius: 6px; font-size: 14px; }
+        .toolbar-left input::placeholder { color: #a0aec0; }
+        
+        .toolbar-btns { display: flex; gap: 12px; align-items: center; }
+        .toolbar-btns button { padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .btn-sync { background: var(--primary); color: white; }
+        .btn-stats { background: #a55eea; color: white; }
+        .btn-clear { background: #747d8c; color: white; }
+
+        /* 主佈局 */
+        .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
+        
+        /* 公告展示區 */
+        .status-banner { background: white; padding: 20px 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .announcement-row { display: flex; justify-content: space-between; align-items: center; }
+        .cash-info { font-size: 24px; font-weight: 800; color: var(--dark); } 
+        .time-info { font-size: 18px; font-weight: bold; color: var(--danger); background: #fff1f2; padding: 6px 15px; border-radius: 8px; } 
+
+        /* 菜單圖片 */
+        .menu-display { width: 100%; max-height: 450px; object-fit: contain; margin-top: 15px; display: none; border-radius: 12px; border: 1px dashed #cbd5e1; }
+        
+        /* 數據看板 */
+        .dashboard { display: flex; gap: 20px; }
+        .card { flex: 1; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+        .card h3 { margin: 0 0 10px; color: #64748b; font-size: 16px; font-weight: bold; }
+        .card p { margin: 0; font-size: 36px; font-weight: 900; } 
+        .text-red { color: var(--danger); }
+
+        /* 點餐表單 */
+        .form-section { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .form-grid { display: grid; grid-template-columns: 1.2fr 2fr 1fr 1fr 1fr 1.2fr; gap: 25px; align-items: end; } 
+        .col-span-2 { grid-column: span 2; } 
+        .form-group label { display: block; margin-bottom: 10px; font-weight: 900; font-size: 15px; color: var(--dark); }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; transition: 0.3s; box-sizing: border-box; }
+        .form-group input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(255,159,67,0.2); }
+        
+        /* 即時找零顯示框 */
+        .live-change-box { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 10px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: 900; color: var(--dark); min-height: 45px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+        .live-change-box.has-change { color: var(--danger); background: #fff1f2; border-color: var(--danger); }
+
+        /* 表格區 */
+        .table-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .table-container h3 { margin-top: 0; padding-bottom: 15px; border-bottom: 4px solid var(--bg); font-weight: 900; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; background: #f8fafc; padding: 15px; color: #64748b; font-weight: bold; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 16px; }
+        
+        /* 按鈕樣式 */
+        .btn-confirm { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 900; cursor: pointer; margin-right: 5px; }
+        .btn-edit { background: #4b5563; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-edit:hover { background: #374151; }
+        .btn-save { background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-save:hover { background: #1d4ed8; }
+        .btn-del { color: #cbd5e1; background: none; border: none; cursor: pointer; font-size: 16px; padding: 6px; margin-left: 5px; border-radius: 6px;}
+        .btn-del:hover { background: #fee2e2; color: var(--danger); }
+
+        /* 內嵌編輯輸入框 */
+        .inline-input { padding: 8px; border: 2px solid var(--primary); border-radius: 6px; font-size: 15px; width: 90%; box-sizing: border-box; font-weight: bold; }
+
+        /* 統計彈窗 */
+        #statsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 100px rgba(0,0,0,0.4); z-index: 100; min-width: 350px; max-width: 500px; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); z-index: 99; }
+        
+        .stats-header { font-size: 20px; font-weight: 900; color: var(--dark); margin-bottom: 15px; }
+        .stats-total { font-size: 18px; font-weight: bold; color: #4b5563; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px dashed #cbd5e1; }
+        .stats-list { max-height: 350px; overflow-y: auto; padding-right: 10px; }
+        .stats-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 16px; }
+        .stats-item-name { color: #333; font-weight: bold; }
+        .stats-item-count { color: var(--primary); font-weight: 900; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-toolbar">
+        <div class="toolbar-left">
+            <span style="font-weight:bold; color:var(--primary);">👑 今天吃什麼：</span>
+            <input type="text" id="annInput" placeholder="修改收款公告..." style="width: 220px;">
+            <input type="text" id="timeInput" placeholder="時間(例如 11:00)" style="width: 140px;">
+            <button class="btn-sync" onclick="updateAnnouncement()">同步公告與時間</button>
+            <span style="margin-left: 10px; font-weight:bold; font-size:14px;">上傳菜單：</span>
+            <input type="file" accept="image/*" style="color: #cbd5e1; font-size: 13px;" onchange="uploadMenu(this)">
+        </div>
+        <div class="toolbar-btns">
+            <button class="btn-stats" onclick="showStats()">📊 叫餐統計</button>
+            <button class="btn-clear" onclick="clearOrders()">🧹 淨空訂單</button>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="status-banner">
+            <div class="announcement-row">
+                <div id="announceText" class="cash-info">📢 收現金 / 收 LINE Pay</div>
+                <div class="time-info">截止時間：<span id="timeText" style="font-size:22px;">未設定</span></div>
+            </div>
+            <img id="menuImg" class="menu-display">
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3>總金額 (應付)</h3>
+                <p id="totalNeed">0</p>
+            </div>
+            <div class="card">
+                <h3>已收現金</h3>
+                <p id="totalGet">0</p>
+            </div>
+            <div class="card">
+                <h3>剩餘待收</h3>
+                <p id="totalPending" class="text-red">0</p>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 style="margin-top:0; border-bottom: 2px solid var(--bg); padding-bottom:10px;">📝 點餐</h3>
+            <div class="form-grid">
+                <div class="form-group"><label>姓名</label><input type="text" id="userName" placeholder="Joyce"></div>
+                <div class="form-group col-span-2"><label>品項</label><input type="text" id="userItem" placeholder="香煎培根燉飯"></div>
+                <div class="form-group"><label>(應付)</label><input type="number" id="price" placeholder="100" oninput="calculateLiveChange()"></div>
+                <div class="form-group"><label>(實付)</label><input type="number" id="pay" placeholder="0" oninput="calculateLiveChange()"></div>
+                
+                <div class="form-group">
+                    <label>找零提示</label>
+                    <div id="liveChangeDisplay" class="live-change-box">0</div>
+                </div>
+
+                <button class="btn-sync" style="height: 48px; width: 100%; border-radius: 8px; font-weight: 900;" onclick="submitOrder()">送出點餐</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h3 style="color:var(--danger)">📝 所有未付款區</h3>
+            <table id="unpaidTable">
+                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>找零狀態</th><th>管理操作</th></tr></thead>
+                <tbody id="unpaidBody"></tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h3 style="color:var(--success)">✅ 所有已付款區</h3>
+            <table id="paidTable">
+                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>管理操作</th></tr></thead>
+                <tbody id="paidBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="modalOverlay" class="modal-overlay" onclick="closeModal()"></div>
+    <div id="statsModal">
+        <div class="stats-header">📞 叫餐統計</div>
+        <div id="statsTotal" class="stats-total">總計：0 份</div>
+        <div id="statsContent" class="stats-list"></div>
+        <button class="btn-sync" style="margin-top:20px; width:100%" onclick="closeModal()">關閉</button>
+    </div>
+
+    <script>
+        const firebaseConfig = { databaseURL: "https://test-order-system-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let editingId = null;
+
+        function calculateLiveChange() {
+            const price = parseInt(document.getElementById('price').value) || 0;
+            const pay = parseInt(document.getElementById('pay').value) || 0;
+            const changeDisplay = document.getElementById('liveChangeDisplay');
+            
+            const diff = pay - price;
+            if (diff > 0) {
+                changeDisplay.innerText = "找 " + diff;
+                changeDisplay.classList.add('has-change');
+            } else {
+                changeDisplay.innerText = "0";
+                changeDisplay.classList.remove('has-change');
+            }
+        }
+
+        database.ref('config/announcement').on('value', (s) => {
+            const val = s.val() || { text: "收現金 / 收 LINE Pay", deadline: "未設定" };
+            document.getElementById('announceText').innerText = "📢 " + val.text;
+            document.getElementById('timeText').innerText = val.deadline;
+        });
+        
+        function updateAnnouncement() {
+            const text = document.getElementById('annInput').value.trim();
+            const time = document.getElementById('timeInput').value.trim();
+            const updates = {};
+            if(text) updates.text = text;
+            if(time) updates.deadline = time + " 截止";
+            if(text || time) database.ref('config/announcement').update(updates);
+            document.getElementById('annInput').value = ''; document.getElementById('timeInput').value = '';
+        }
+
+        function uploadMenu(input) {
+            if (input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => database.ref('config/menuImage').set(e.target.result);
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        database.ref('config/menuImage').on('value', (s) => {
+            const img = document.getElementById('menuImg');
+            if (s.val()) { img.src = s.val(); img.style.display = 'block'; }
+        });
+
+        function submitOrder() {
+            const name = document.getElementById('userName').value.trim();
+            const item = document.getElementById('userItem').value.trim();
+            const price = parseInt(document.getElementById('price').value) || 0;
+            const pay = parseInt(document.getElementById('pay').value) || 0;
+            if(!name || !item) return alert("請填寫姓名與品項內容！");
+            database.ref('orders').push({ name, item, price, pay, isPaid: false });
+            
+            document.getElementById('userName').value = ''; document.getElementById('userItem').value = '';
+            document.getElementById('price').value = ''; document.getElementById('pay').value = '';
+            document.getElementById('liveChangeDisplay').innerText = "0";
+            document.getElementById('liveChangeDisplay').classList.remove('has-change');
+        }
+        
+        function markPaid(id) { database.ref('orders').child(id).update({ isPaid: true }); }
+
+        function startEdit(id) {
+            editingId = id;
+            database.ref('orders').once('value', (snapshot) => renderTable(snapshot.val()));
+        }
+
+        function cancelEdit() {
+            editingId = null;
+            database.ref('orders').once('value', (snapshot) => renderTable(snapshot.val()));
+        }
+
+        // 🚀 【真正終極防卡死修復】
+        function saveEdit(id) {
+            const elItem = document.getElementById(`editItem_${id}`);
+            const elPrice = document.getElementById(`editPrice_${id}`);
+            const elPay = document.getElementById(`editPay_${id}`);
+
+            if (!elItem || !elPrice || !elPay) {
+                alert("抓不到輸入框，請重整網頁！");
+                return;
+            }
+
+            const newItem = elItem.value.trim();
+            const newPrice = parseInt(elPrice.value) || 0;
+            const newPay = parseInt(elPay.value) || 0;
+
+            if (!newItem) {
+                alert("品項不能是空白喔！");
+                return;
+            }
+
+            // 【關鍵修改】：先把畫面編輯狀態設定為 null，再更新資料，這樣 Firebase 更新時保證畫面能一秒跳轉回正常表格！
+            editingId = null;
+
+            database.ref('orders').child(id).update({
+                item: newItem,
+                price: newPrice,
+                pay: newPay
+            }).catch(err => {
+                alert("儲存失敗：" + err.message);
+            });
+        }
+
+        function renderTable(orders) {
+            const unpaidBody = document.getElementById('unpaidBody');
+            const paidBody = document.getElementById('paidBody');
+            unpaidBody.innerHTML = paidBody.innerHTML = '';
+            let tNeed = 0, tGet = 0;
+
+            if (orders) {
+                Object.keys(orders).forEach(id => {
+                    const o = orders[id];
+                    tNeed += o.price;
+
+                    const isEditing = (editingId === id);
+                    const changeAmt = o.pay - o.price;
+                    const safeItem = o.item.replace(/"/g, '&quot;');
+
+                    if (o.isPaid) {
+                        tGet += o.pay;
+                        
+                        if (isEditing) {
+                            paidBody.innerHTML += `<tr>
+                                <td><strong>${o.name}</strong></td>
+                                <td><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
+                                <td><input type="number" id="editPrice_${id}" class="inline-input" value="${o.price}"></td>
+                                <td><input type="number" id="editPay_${id}" class="inline-input" value="${o.pay}"></td>
+                                <td>
+                                    <button class="btn-save" onclick="saveEdit('${id}')">💾 儲存</button>
+                                    <button class="btn-del" onclick="cancelEdit()">取消</button>
+                                </td>
+                            </tr>`;
+                        } else {
+                            paidBody.innerHTML += `<tr>
+                                <td><strong>${o.name}</strong></td>
+                                <td style="color:#475569">${o.item}</td>
+                                <td>$${o.price}</td>
+                                <td style="color:var(--success); font-weight:900;">$${o.pay}</td>
+                                <td>
+                                    <button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button>
+                                    <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
+                                </td>
+                            </tr>`;
+                        }
+                    } else {
+                        if (isEditing) {
+                            unpaidBody.innerHTML += `<tr>
+                                <td><strong>${o.name}</strong></td>
+                                <td><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
+                                <td><input type="number" id="editPrice_${id}" class="inline-input" value="${o.price}"></td>
+                                <td><input type="number" id="editPay_${id}" class="inline-input" value="${o.pay}"></td>
+                                <td>編輯中</td>
+                                <td>
+                                    <button class="btn-save" onclick="saveEdit('${id}')">💾 儲存</button>
+                                    <button class="btn-del" onclick="cancelEdit()">取消</button>
+                                </td>
+                            </tr>`;
+                        } else {
+                            const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 $${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">$0</span>`;
+
+                            unpaidBody.innerHTML += `<tr>
+                                <td><strong>${o.name}</strong></td>
+                                <td style="color:#475569">${o.item}</td>
+                                <td>$${o.price}</td>
+                                <td style="color:#94a3b8">$${o.pay}</td>
+                                <td>${changeText}</td>
+                                <td>
+                                    <button class="btn-confirm" onclick="markPaid('${id}')">✓ 確認收款</button>
+                                    <button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button>
+                                    <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
+                                </td>
+                            </tr>`;
+                        }
+                    }
+                });
+            }
+            
+            let pending = tNeed - tGet;
+            if (pending < 0) pending = 0;
+
+            document.getElementById('totalNeed').innerText = tNeed;
+            document.getElementById('totalGet').innerText = tGet;
+            document.getElementById('totalPending').innerText = pending;
+        }
+
+        database.ref('orders').on('value', (snapshot) => {
+            renderTable(snapshot.val());
+        });
+
+        // 5. 終極拆單統計功能 
+        function showStats() {
+            database.ref('orders').once('value', (s) => {
+                const orders = s.val(); 
+                const stats = {};
+                let totalItemsCount = 0; 
+
+                if(orders) {
+                    Object.values(orders).forEach(o => { 
+                        const splitItems = o.item.split(/[+＋,，、/]/);
+                        splitItems.forEach(singleItem => {
+                            const cleanedName = singleItem.trim();
+                            if(cleanedName) {
+                                stats[cleanedName] = (stats[cleanedName] || 0) + 1;
+                                totalItemsCount++;
+                            }
+                        });
+                    }); 
+                }
+
+                document.getElementById('statsTotal').innerText = `總計：${totalItemsCount} 份`;
+
+                let html = '';
+                for(let k in stats) { 
+                    html += `<div class="stats-item">
+                                <div class="stats-item-name">🍱 ${k}</div>
+                                <div class="stats-item-count">× ${stats[k]}</div>
+                             </div>`; 
+                }
+                
+                document.getElementById('statsContent').innerHTML = html;
+                document.getElementById('statsModal').style.display = 'block'; 
+                document.getElementById('modalOverlay').style.display = 'block';
+            });
+        }
+
+        function closeModal() { document.getElementById('statsModal').style.display = 'none'; document.getElementById('modalOverlay').style.display = 'none'; }
+        function deleteOrder(id) { if(confirm("確定刪除此筆點餐？")) database.ref('orders').child(id).remove(); }
+        function clearOrders() { if(confirm("確定清空所有數據？")) database.ref('orders').remove(); }
+    </script>
+</body>
+</html>
