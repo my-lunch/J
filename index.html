@@ -43,13 +43,16 @@
         .card p { margin: 0; font-size: 36px; font-weight: 900; } 
         .text-red { color: var(--danger); }
 
-        /* 點餐表單 */
+        /* 📝 點餐表單 */
         .form-section { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .form-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 25px; align-items: end; } 
-        .col-span-2 { grid-column: span 2; } 
+        .form-grid { display: grid; grid-template-columns: 1.2fr 2fr 1fr 1fr 1fr 1.2fr; gap: 25px; align-items: end; } 
         .form-group label { display: block; margin-bottom: 10px; font-weight: 900; font-size: 15px; color: var(--dark); }
         .form-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; transition: 0.3s; box-sizing: border-box; }
         .form-group input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(255,159,67,0.2); }
+        
+        /* 點餐自動計算找零格 */
+        .live-change-box { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 10px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: 900; color: var(--dark); min-height: 45px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+        .live-change-box.has-change { color: var(--danger); background: #fff1f2; border-color: var(--danger); }
 
         /* 表格區 */
         .table-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
@@ -58,17 +61,16 @@
         th { text-align: left; background: #f8fafc; padding: 15px; color: #64748b; font-weight: bold; }
         td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 16px; }
         
-        /* 按鈕樣式 */
-        .btn-confirm { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 900; cursor: pointer; margin-right: 5px; }
-        .btn-edit { background: #4b5563; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        /* 精簡化按鈕樣式 */
+        .btn-confirm { background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; margin-right: 3px; }
+        .btn-edit { background: #4b5563; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; }
         .btn-edit:hover { background: #374151; }
-        .btn-save { background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-save:hover { background: #1d4ed8; }
-        .btn-del { color: #cbd5e1; background: none; border: none; cursor: pointer; font-size: 18px; margin-left: 8px; }
+        .btn-save { background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .btn-del { color: #cbd5e1; background: none; border: none; cursor: pointer; font-size: 13px; font-weight: bold; margin-left: 5px; padding: 0; }
         .btn-del:hover { color: var(--danger); }
 
         /* 內嵌編輯輸入框 */
-        .inline-input { padding: 6px; border: 1px solid var(--primary); border-radius: 4px; font-size: 14px; width: 90%; box-sizing: border-box; }
+        .inline-input { padding: 5px; border: 1px solid var(--primary); border-radius: 4px; font-size: 13px; width: 95%; box-sizing: border-box; }
 
         /* 彈窗 */
         #statsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 40px; border-radius: 20px; box-shadow: 0 0 100px rgba(0,0,0,0.4); z-index: 100; min-width: 350px; }
@@ -118,12 +120,18 @@
         </div>
 
         <div class="form-section">
-            <h3 style="margin-top:0; border-bottom: 2px solid var(--bg); padding-bottom:10px;">點餐</h3>
+            <h3 style="margin-top:0; border-bottom: 2px solid var(--bg); padding-bottom:10px;">📝 點餐</h3>
             <div class="form-grid">
                 <div class="form-group"><label>姓名</label><input type="text" id="userName" placeholder="Joyce"></div>
-                <div class="form-group col-span-2"><label>品項</label><input type="text" id="userItem" placeholder="香煎培根燉飯 (微辣/加麵)"></div>
-                <div class="form-group"><label>應付金額</label><input type="number" id="price" placeholder="100"></div>
-                <div class="form-group"><label>輸入實付</label><input type="number" id="pay" placeholder="0"></div>
+                <div class="form-group"><label>品項</label><input type="text" id="userItem" placeholder="香煎培根燉飯"></div>
+                <div class="form-group"><label>應付金額</label><input type="number" id="price" placeholder="100" oninput="calculateLiveChange()"></div>
+                <div class="form-group"><label>輸入實付</label><input type="number" id="pay" placeholder="0" oninput="calculateLiveChange()"></div>
+                
+                <div class="form-group">
+                    <label>找零提示</label>
+                    <div id="liveChangeDisplay" class="live-change-box">0</div>
+                </div>
+
                 <button class="btn-sync" style="height: 48px; width: 100%; border-radius: 8px; font-weight: 900;" onclick="submitOrder()">送出點餐</button>
             </div>
         </div>
@@ -158,6 +166,22 @@
         const database = firebase.database();
 
         let editingId = null;
+
+        // 即時計算點餐框的找零
+        function calculateLiveChange() {
+            const price = parseInt(document.getElementById('price').value) || 0;
+            const pay = parseInt(document.getElementById('pay').value) || 0;
+            const changeDisplay = document.getElementById('liveChangeDisplay');
+            
+            const diff = pay - price;
+            if (diff > 0) {
+                changeDisplay.innerText = "找 " + diff;
+                changeDisplay.classList.add('has-change');
+            } else {
+                changeDisplay.innerText = "0";
+                changeDisplay.classList.remove('has-change');
+            }
+        }
 
         // 1. 公告與時間
         database.ref('config/announcement').on('value', (s) => {
@@ -198,6 +222,8 @@
             database.ref('orders').push({ name, item, price, pay, isPaid: false });
             document.getElementById('userName').value = ''; document.getElementById('userItem').value = '';
             document.getElementById('price').value = ''; document.getElementById('pay').value = '';
+            document.getElementById('liveChangeDisplay').innerText = "0";
+            document.getElementById('liveChangeDisplay').classList.remove('has-change');
         }
         function markPaid(id) { database.ref('orders').child(id).update({ isPaid: true }); }
 
@@ -206,21 +232,21 @@
             database.ref('orders').once('value', (snapshot) => renderTable(snapshot.val()));
         }
 
-        // 🚀 防卡死安全儲存：無論哪一區修改皆能精準保存
+        // 🚀 全新流暢「下一步」儲存機制：精準動態抓取欄位並直接覆蓋
         function saveEdit(id) {
-            const elItem = document.getElementById(`editItem-${id}`);
-            const elPrice = document.getElementById(`editPrice-${id}`);
-            const elPay = document.getElementById(`editPay-${id}`);
+            const inputItem = document.getElementById(`editItem-${id}`);
+            const inputPrice = document.getElementById(`editPrice-${id}`);
+            const inputPay = document.getElementById(`editPay-${id}`);
 
-            if (!elItem || !elPrice || !elPay) {
-                alert("找不到編輯欄位，請重試！");
+            if (!inputItem || !inputPrice || !inputPay) {
+                alert("抓取欄位失敗，請重試！");
                 editingId = null;
                 return;
             }
 
-            const newItem = elItem.value.trim();
-            const newPrice = parseInt(elPrice.value) || 0;
-            const newPay = parseInt(elPay.value) || 0;
+            const newItem = inputItem.value.trim();
+            const newPrice = parseInt(inputPrice.value) || 0;
+            const newPay = parseInt(inputPay.value) || 0;
 
             if(!newItem) return alert("品項不能為空");
 
@@ -229,11 +255,11 @@
                 price: newPrice,
                 pay: newPay
             }).then(() => {
-                editingId = null; // 清除編輯標記，觸發渲染刷新
+                editingId = null; // 成功儲存，自動跳出編輯視圖
             });
         }
 
-        // 4. 渲染邏輯
+        // 4. 表格渲染邏輯
         function renderTable(orders) {
             const unpaidBody = document.getElementById('unpaidBody');
             const paidBody = document.getElementById('paidBody');
@@ -258,8 +284,8 @@
                                 <td><input type="number" id="editPrice-${id}" class="inline-input" value="${o.price}"></td>
                                 <td><input type="number" id="editPay-${id}" class="inline-input" value="${o.pay}"></td>
                                 <td>
-                                    <button class="btn-save" onclick="saveEdit('${id}')">💾 儲存</button>
-                                    <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
+                                    <button class="btn-save" onclick="saveEdit('${id}')">➡️ 下一步</button>
+                                    <button class="btn-del" style="font-size:11px;" onclick="deleteOrder('${id}')">❌</button>
                                 </td>
                             </tr>`;
                         } else {
@@ -270,7 +296,7 @@
                                 <td style="color:var(--success); font-weight:900;">$${o.pay}</td>
                                 <td>
                                     <button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button>
-                                    <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
+                                    <button class="btn-del" style="font-size:11px;" onclick="deleteOrder('${id}')">❌</button>
                                 </td>
                             </tr>`;
                         }
@@ -281,13 +307,13 @@
                                 <td><input type="text" id="editItem-${id}" class="inline-input" value="${o.item}"></td>
                                 <td><input type="number" id="editPrice-${id}" class="inline-input" value="${o.price}"></td>
                                 <td><input type="number" id="editPay-${id}" class="inline-input" value="${o.pay}"></td>
-                                <td>編輯中</td>
+                                <td style="color:#aaa; font-size:13px;">編輯中</td>
                                 <td>
-                                    <button class="btn-save" onclick="saveEdit('${id}')">💾 儲存</button>
+                                    <button class="btn-save" onclick="saveEdit('${id}')">➡️ 下一步</button>
                                 </td>
                             </tr>`;
                         } else {
-                            // 找零狀態在未付款區渲染
+                            // 找零狀態在未付款區完美呈現
                             const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 $${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">$0</span>`;
 
                             unpaidBody.innerHTML += `<tr>
@@ -299,7 +325,7 @@
                                 <td>
                                     <button class="btn-confirm" onclick="markPaid('${id}')">✓ 確認收款</button>
                                     <button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button>
-                                    <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
+                                    <button class="btn-del" style="font-size:11px;" onclick="deleteOrder('${id}')">❌</button>
                                 </td>
                             </tr>`;
                         }
@@ -332,3 +358,4 @@
     </script>
 </body>
 </html>
+
