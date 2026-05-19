@@ -131,7 +131,7 @@
         <div class="table-container">
             <h3 style="color:var(--danger)">⚠️ 所有未付款區</h3>
             <table id="unpaidTable">
-                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>管理操作</th></tr></thead>
+                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>找零狀態</th><th>管理操作</th></tr></thead>
                 <tbody id="unpaidBody"></tbody>
             </table>
         </div>
@@ -139,7 +139,7 @@
         <div class="table-container">
             <h3 style="color:var(--success)">✅ 所有已付款區</h3>
             <table id="paidTable">
-                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>找零狀態</th><th>管理操作</th></tr></thead>
+                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>管理操作</th></tr></thead>
                 <tbody id="paidBody"></tbody>
             </table>
         </div>
@@ -206,7 +206,7 @@
             database.ref('orders').once('value', (snapshot) => renderTable(snapshot.val()));
         }
 
-        // ✨ 核心修正：完美綁定雙區域的動態儲存
+        // 🛠️ 儲存 Bug 徹底修復：完美動態取得修改格子的對應資料
         function saveEdit(id) {
             const newItem = document.getElementById(`editItem-${id}`).value.trim();
             const newPrice = parseInt(document.getElementById(`editPrice-${id}`).value) || 0;
@@ -219,7 +219,7 @@
                 price: newPrice,
                 pay: newPay
             }).then(() => {
-                editingId = null; // 重置編輯狀態，觸發自動刷新
+                editingId = null; // 重置編輯狀態，畫面會自動重整
             });
         }
 
@@ -236,9 +236,10 @@
                     tNeed += o.price;
 
                     const isEditing = (editingId === id);
+                    const changeAmt = o.pay - o.price; // 計算找零數字
 
                     if (o.isPaid) {
-                        tGet += o.pay; tChange += (o.pay - o.price);
+                        tGet += o.pay; tChange += changeAmt;
                         
                         if (isEditing) {
                             paidBody.innerHTML += `<tr>
@@ -246,7 +247,6 @@
                                 <td><input type="text" id="editItem-${id}" class="inline-input" value="${o.item}"></td>
                                 <td><input type="number" id="editPrice-${id}" class="inline-input" value="${o.price}"></td>
                                 <td><input type="number" id="editPay-${id}" class="inline-input" value="${o.pay}"></td>
-                                <td>編輯中</td>
                                 <td>
                                     <button class="btn-save" onclick="saveEdit('${id}')">💾 儲存</button>
                                     <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
@@ -258,7 +258,6 @@
                                 <td style="color:#475569">${o.item}</td>
                                 <td>$${o.price}</td>
                                 <td style="color:var(--success); font-weight:900;">$${o.pay}</td>
-                                <td><span style="color:var(--danger); font-weight:900;">找零 $${o.pay-o.price}</span></td>
                                 <td>
                                     <button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button>
                                     <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>
@@ -272,16 +271,21 @@
                                 <td><input type="text" id="editItem-${id}" class="inline-input" value="${o.item}"></td>
                                 <td><input type="number" id="editPrice-${id}" class="inline-input" value="${o.price}"></td>
                                 <td><input type="number" id="editPay-${id}" class="inline-input" value="${o.pay}"></td>
+                                <td>編輯中</td>
                                 <td>
                                     <button class="btn-save" onclick="saveEdit('${id}')">💾 儲存</button>
                                 </td>
                             </tr>`;
                         } else {
+                            // ✨ 找零狀態在未付款區渲染：有找零就跳紅色找多少，不用找零就跳 $0
+                            const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 $${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">$0</span>`;
+
                             unpaidBody.innerHTML += `<tr>
                                 <td><strong>${o.name}</strong></td>
                                 <td style="color:#475569">${o.item}</td>
                                 <td>$${o.price}</td>
                                 <td style="color:#94a3b8">$${o.pay}</td>
+                                <td>${changeText}</td>
                                 <td>
                                     <button class="btn-confirm" onclick="markPaid('${id}')">✓ 確認收款</button>
                                     <button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button>
