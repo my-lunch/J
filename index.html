@@ -206,11 +206,21 @@
             database.ref('orders').once('value', (snapshot) => renderTable(snapshot.val()));
         }
 
-        // 🛠️ 儲存 Bug 徹底修復：完美動態取得修改格子的對應資料
+        // 🚀 防卡死安全儲存：無論哪一區修改皆能精準保存
         function saveEdit(id) {
-            const newItem = document.getElementById(`editItem-${id}`).value.trim();
-            const newPrice = parseInt(document.getElementById(`editPrice-${id}`).value) || 0;
-            const newPay = parseInt(document.getElementById(`editPay-${id}`).value) || 0;
+            const elItem = document.getElementById(`editItem-${id}`);
+            const elPrice = document.getElementById(`editPrice-${id}`);
+            const elPay = document.getElementById(`editPay-${id}`);
+
+            if (!elItem || !elPrice || !elPay) {
+                alert("找不到編輯欄位，請重試！");
+                editingId = null;
+                return;
+            }
+
+            const newItem = elItem.value.trim();
+            const newPrice = parseInt(elPrice.value) || 0;
+            const newPay = parseInt(elPay.value) || 0;
 
             if(!newItem) return alert("品項不能為空");
 
@@ -219,7 +229,7 @@
                 price: newPrice,
                 pay: newPay
             }).then(() => {
-                editingId = null; // 重置編輯狀態，畫面會自動重整
+                editingId = null; // 清除編輯標記，觸發渲染刷新
             });
         }
 
@@ -236,10 +246,10 @@
                     tNeed += o.price;
 
                     const isEditing = (editingId === id);
-                    const changeAmt = o.pay - o.price; // 計算找零數字
+                    const changeAmt = o.pay - o.price; 
 
                     if (o.isPaid) {
-                        tGet += o.pay; tChange += changeAmt;
+                        tGet += o.pay; tChange += (o.pay - o.price);
                         
                         if (isEditing) {
                             paidBody.innerHTML += `<tr>
@@ -277,7 +287,7 @@
                                 </td>
                             </tr>`;
                         } else {
-                            // ✨ 找零狀態在未付款區渲染：有找零就跳紅色找多少，不用找零就跳 $0
+                            // 找零狀態在未付款區渲染
                             const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 $${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">$0</span>`;
 
                             unpaidBody.innerHTML += `<tr>
