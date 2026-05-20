@@ -34,13 +34,13 @@
         .cash-info { font-size: 24px; font-weight: 800; color: var(--dark); } 
         
         .time-info-wrapper { display: flex; align-items: center; }
-        .time-info { font-size: 18px; font-weight: bold; color: var(--danger); background: #fff1f2; padding: 6px 15px; border-radius: 8px; } 
+        .time-info { display: flex; align-items: baseline; font-size: 18px; font-weight: bold; color: var(--danger); background: #fff1f2; padding: 8px 20px; border-radius: 8px; } 
 
         /* 💡 特務級隱藏打勾框 */
         .admin-checkbox-secret { width: 13px; height: 13px; cursor: pointer; opacity: 0.15; margin-left: 10px; }
-        .admin-checkbox-secret:hover { opacity: 0.6; } /* 游標滑過去稍微變清楚一點點 */
+        .admin-checkbox-secret:hover { opacity: 0.6; }
 
-        /* 菜單圖片 (桌機預設：放大極限，讓直式圖片能清楚顯示) */
+        /* 菜單圖片 */
         .menu-wrapper { width: 100%; display: none; text-align: center; }
         .menu-display { width: 100%; height: auto; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: block; }
         
@@ -92,7 +92,7 @@
             .container, .admin-toolbar { padding: 0 10px; }
             .announcement-row { flex-direction: column; gap: 15px; align-items: center; text-align: center; }
             .cash-info { font-size: 22px; }
-            .time-info { width: 100%; box-sizing: border-box; font-size: 16px; }
+            .time-info { width: 100%; box-sizing: border-box; font-size: 16px; justify-content: center; }
             .dashboard { flex-direction: column; gap: 10px; }
             .form-grid { grid-template-columns: 1fr; gap: 15px; }
             .col-span-2 { grid-column: span 1; }
@@ -131,7 +131,7 @@
             <div class="announcement-row">
                 <div id="announceText" class="cash-info">📢 收現金 / 收 LINE Pay</div>
                 <div class="time-info-wrapper">
-                    <div class="time-info">截止時間：<span id="timeText" style="font-size:22px;">未設定</span></div>
+                    <div class="time-info">截止時間：<span id="timeText" style="font-size:32px; font-weight:900; margin:0 5px; line-height:1;">未設定</span></div>
                     <input type="checkbox" id="adminToggle" class="admin-checkbox-secret" title="隱藏開關">
                 </div>
             </div>
@@ -212,15 +212,12 @@
         const adminToggle = document.getElementById('adminToggle');
         adminToggle.checked = isAdminMode;
         
-        // 根據狀態顯示工具列
         document.getElementById('adminToolbar').style.display = isAdminMode ? 'flex' : 'none';
 
-        // 監聽打勾狀態改變
         adminToggle.addEventListener('change', (e) => {
             isAdminMode = e.target.checked;
             localStorage.setItem('isAdminMode', isAdminMode);
             document.getElementById('adminToolbar').style.display = isAdminMode ? 'flex' : 'none';
-            // 重新讀取表格以刷新「刪除/確認」按鈕
             database.ref('orders').once('value', s => renderTable(s.val()));
         });
 
@@ -439,6 +436,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
