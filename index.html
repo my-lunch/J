@@ -10,13 +10,11 @@
 
     <style>
         :root { --primary: #ff9f43; --danger: #e11d48; --success: #26de81; --bg: #f1f5f9; --dark: #1e293b; }
-        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: block; color: var(--dark); overflow-x: hidden; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--dark); overflow-x: hidden; }
         
-        /* 👑 頂部橫向工具欄 (預設隱藏，靠密碼開關開啟) */
         .admin-toolbar { display: none; background: var(--dark); padding: 12px 25px; border-radius: 12px; align-items: center; justify-content: space-between; margin-bottom: 25px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 15px; }
         .toolbar-left { display: flex; align-items: center; gap: 15px; flex-grow: 1; flex-wrap: wrap; }
         .toolbar-left input { padding: 8px 12px; border: 1px solid #444; background: #2d3748; color: white; border-radius: 6px; font-size: 14px; }
-        .toolbar-left input::placeholder { color: #a0aec0; }
         
         .toolbar-btns { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
         .toolbar-btns button { padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; }
@@ -24,53 +22,162 @@
         .btn-stats { background: #a55eea; color: white; }
         .btn-clear { background: #747d8c; color: white; }
 
-        /* 主佈局 */
         .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
         
-        /* 公告展示區 */
         .status-banner { background: white; padding: 20px 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .announcement-row { display: flex; justify-content: space-between; align-items: center; }
         .cash-info { font-size: 24px; font-weight: 800; color: var(--dark); cursor: pointer; user-select: none; } 
         .time-info { font-size: 18px; font-weight: bold; color: var(--danger); background: #fff1f2; padding: 6px 15px; border-radius: 8px; } 
 
-        /* 👑 菜單圖片 (桌機：解除高度限制，寬度與上下白框完全一致) */
-        .menu-wrapper { width: 100%; display: none; }
+        .menu-wrapper { width: 100%; display: none; margin-top: 15px; }
         .menu-display { width: 100%; height: auto; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: block; }
         
-        /* 數據看板 */
         .dashboard { display: flex; gap: 20px; }
         .card { flex: 1; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
         .card h3 { margin: 0 0 10px; color: #64748b; font-size: 16px; font-weight: bold; }
         .card p { margin: 0; font-size: 36px; font-weight: 900; } 
-        .text-red { color: var(--danger); }
 
-        /* 點餐表單 */
         .form-section { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .form-grid { display: grid; grid-template-columns: 1.2fr 2fr 1fr 1fr 1fr 1.2fr; gap: 25px; align-items: end; } 
         .col-span-2 { grid-column: span 2; } 
         .form-group label { display: block; margin-bottom: 10px; font-weight: 900; font-size: 15px; color: var(--dark); }
         .form-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; box-sizing: border-box; height: 48px; }
-        .form-group input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(255,159,67,0.2); }
         
-        /* 找零顯示框 */
         .live-change-box { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 0 10px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: 900; color: var(--dark); height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
         .live-change-box.has-change { color: var(--danger); background: #fff1f2; border-color: var(--danger); }
 
-        /* 表格區 */
         .table-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .table-container h3 { margin-top: 0; padding-bottom: 15px; border-bottom: 4px solid var(--bg); font-weight: 900; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { text-align: left; background: #f8fafc; padding: 15px; color: #64748b; font-weight: bold; }
         td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 16px; }
         
-        /* 按鈕與標籤 */
         .btn-confirm { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 900; cursor: pointer; margin-right: 5px; }
         .btn-edit { background: #4b5563; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-save { background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-del { color: #cbd5e1; background: none; border: none; cursor: pointer; font-size: 16px; padding: 6px; margin-left: 5px; border-radius: 6px;}
-        .btn-del:hover { background: #fee2e2; color: var(--danger); }
-        .readonly-text { color: #94a3b8; font-size: 14px; font-weight: bold; }
         .inline-input { padding: 8px; border: 2px solid var(--primary); border-radius: 6px; font-size: 15px; width: 90%; box-sizing: border-box; font-weight: bold; }
 
-        /* 統計彈窗 */
-        #statsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50
+        #statsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 100px rgba(0,0,0,0.4); z-index: 100; min-width: 350px; max-width: 500px; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); z-index: 99; }
+        .stats-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 16px; }
+
+        @media (max-width: 768px) {
+            body { padding: 10px 0; }
+            .container, .admin-toolbar { padding: 0 10px; }
+            .announcement-row { flex-direction: column; gap: 15px; align-items: center; text-align: center; }
+            .dashboard { flex-direction: column; gap: 10px; }
+            .form-grid { grid-template-columns: 1fr; gap: 15px; }
+            .col-span-2 { grid-column: span 1; }
+            .menu-wrapper { margin-left: -10px; width: 100vw; }
+            .menu-display { border-radius: 0; box-shadow: none; width: 100%; }
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; }
+            tr { margin-bottom: 15px; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; background: white; }
+            td { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #f1f5f9; padding: 8px 0; }
+            td::before { content: attr(data-label); font-weight: 900; color: #64748b; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-toolbar" id="adminToolbar">
+        <div class="toolbar-left">
+            <span style="font-weight:bold; color:var(--primary);">👑 團主模式：</span>
+            <input type="text" id="annInput" placeholder="修改公告...">
+            <input type="text" id="timeInput" placeholder="截止時間">
+            <button class="btn-sync" onclick="updateAnnouncement()">同步</button>
+            <input type="file" accept="image/*" onchange="uploadMenu(this)">
+        </div>
+        <div class="toolbar-btns">
+            <label style="cursor: pointer; font-weight: bold;"><input type="checkbox" id="adminToggle"> 我是團主</label>
+            <button class="btn-stats" onclick="showStats()">📊 統計</button>
+            <button class="btn-clear" onclick="clearOrders()">🧹 清空</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="status-banner">
+            <div class="announcement-row">
+                <div id="announceText" class="cash-info" onclick="triggerAdmin()">📢 收現金 / 收 LINE Pay</div>
+                <div class="time-info">截止時間：<span id="timeText">未設定</span></div>
+            </div>
+        </div>
+
+        <div id="menuWrapper" class="menu-wrapper"><img id="menuImg" class="menu-display"></div>
+
+        <div class="dashboard">
+            <div class="card"><h3>總金額</h3><p id="totalNeed">0</p></div>
+            <div class="card"><h3>已收現金</h3><p id="totalGet">0</p></div>
+            <div class="card"><h3>待收</h3><p id="totalPending" style="color:var(--danger)">0</p></div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-grid">
+                <div class="form-group"><label>姓名</label><input type="text" id="userName"></div>
+                <div class="form-group col-span-2"><label>品項</label><input type="text" id="userItem"></div>
+                <div class="form-group"><label>應付</label><input type="number" id="price" oninput="calculateLiveChange()"></div>
+                <div class="form-group"><label>實付</label><input type="number" id="pay" oninput="calculateLiveChange()"></div>
+                <div class="form-group"><label>找零</label><div id="liveChangeDisplay" class="live-change-box">0</div></div>
+                <button class="btn-sync" style="height:48px; font-weight:900;" onclick="submitOrder()">送出</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h3 style="color:var(--danger)">📝 未付款</h3>
+            <table>
+                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>找零</th><th>管理</th></tr></thead>
+                <tbody id="unpaidBody"></tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h3 style="color:var(--success)">✅ 已付款</h3>
+            <table>
+                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>管理</th></tr></thead>
+                <tbody id="paidBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="modalOverlay" class="modal-overlay" onclick="closeModal()"></div>
+    <div id="statsModal">
+        <div style="font-weight:900; margin-bottom:15px; font-size:20px;">叫餐統計</div>
+        <div id="statsTotal" style="margin-bottom:15px; font-weight:bold;"></div>
+        <div id="statsContent"></div>
+        <button class="btn-sync" style="margin-top:20px; width:100%; padding:10px;" onclick="closeModal()">關閉</button>
+    </div>
+
+    <script>
+        // 🔴 確保 Firebase 初始化
+        const firebaseConfig = { databaseURL: "https://test-order-system-default-rtdb.firebaseio.com/" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let myId = localStorage.getItem('myDeviceId') || Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('myDeviceId', myId);
+
+        let isAdminMode = localStorage.getItem('isAdminMode') === 'true';
+        const adminToggle = document.getElementById('adminToggle');
+        adminToggle.checked = isAdminMode;
+        if(isAdminMode) document.getElementById('adminToolbar').style.display = 'flex';
+
+        adminToggle.addEventListener('change', (e) => {
+            isAdminMode = e.target.checked;
+            localStorage.setItem('isAdminMode', isAdminMode);
+            database.ref('orders').once('value', s => renderTable(s.val()));
+        });
+
+        let clickCount = 0, clickTimer = null;
+        function triggerAdmin() {
+            clickCount++; clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
+            if (clickCount >= 3) {
+                const toolbar = document.getElementById('adminToolbar');
+                toolbar.style.display = (toolbar.style.display === 'flex') ? 'none' : 'flex';
+                clickCount = 0;
+            }
+        }
+
+        function calculateLiveChange() {
+            const p = parseInt(document
