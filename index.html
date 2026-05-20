@@ -12,8 +12,8 @@
         :root { --primary: #ff9f43; --danger: #e11d48; --success: #26de81; --bg: #f1f5f9; --dark: #1e293b; }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: block; color: var(--dark); overflow-x: hidden; }
         
-        /* 👑 頂部橫向工具欄 */
-        .admin-toolbar { background: var(--dark); padding: 12px 25px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 15px; }
+        /* 👑 頂部橫向工具欄 (預設隱藏，靠密碼開關開啟) */
+        .admin-toolbar { display: none; background: var(--dark); padding: 12px 25px; border-radius: 12px; align-items: center; justify-content: space-between; margin-bottom: 25px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 15px; }
         .toolbar-left { display: flex; align-items: center; gap: 15px; flex-grow: 1; flex-wrap: wrap; }
         .toolbar-left input { padding: 8px 12px; border: 1px solid #444; background: #2d3748; color: white; border-radius: 6px; font-size: 14px; }
         .toolbar-left input::placeholder { color: #a0aec0; }
@@ -30,10 +30,11 @@
         /* 公告展示區 */
         .status-banner { background: white; padding: 20px 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .announcement-row { display: flex; justify-content: space-between; align-items: center; }
-        .cash-info { font-size: 24px; font-weight: 800; color: var(--dark); } 
+        /* 加上 cursor:pointer 讓團主知道這裡可以點 */
+        .cash-info { font-size: 24px; font-weight: 800; color: var(--dark); cursor: pointer; user-select: none; } 
         .time-info { font-size: 18px; font-weight: bold; color: var(--danger); background: #fff1f2; padding: 6px 15px; border-radius: 8px; } 
 
-        /* 菜單圖片 (桌機預設) */
+        /* 菜單圖片 */
         .menu-wrapper { width: 100%; margin-top: 15px; display: none; }
         .menu-display { width: 100%; max-height: 500px; object-fit: contain; border-radius: 12px; border: 2px solid #e2e8f0; box-sizing: border-box; }
         
@@ -82,15 +83,21 @@
         .stats-item-name { color: #333; font-weight: bold; }
         .stats-item-count { color: var(--primary); font-weight: 900; font-size: 18px; }
 
-        /* 📱 手機版滿版優化 */
+        /* 📱 手機版排版優化 */
         @media (max-width: 768px) {
             body { padding: 10px 0; }
             .container, .admin-toolbar { padding: 0 10px; }
+            
+            /* 【修正重點】：讓公告區塊上下排列、置中對齊 */
+            .announcement-row { flex-direction: column; gap: 15px; align-items: center; text-align: center; }
+            .cash-info { font-size: 22px; }
+            .time-info { width: 100%; box-sizing: border-box; font-size: 16px; }
+
             .dashboard { flex-direction: column; gap: 10px; }
             .form-grid { grid-template-columns: 1fr; gap: 15px; }
             .col-span-2 { grid-column: span 1; }
             
-            /* 讓菜單圖片強制滿版，無視 padding */
+            /* 滿版菜單圖片 */
             .menu-wrapper { margin-left: -10px; width: 100vw; margin-top: 20px; }
             .menu-display { border-radius: 0; border: none; max-height: none; width: 100%; }
 
@@ -108,7 +115,7 @@
 </head>
 <body>
 
-    <div class="admin-toolbar">
+    <div class="admin-toolbar" id="adminToolbar">
         <div class="toolbar-left">
             <span style="font-weight:bold; color:var(--primary);">👑 今天吃什麼：</span>
             <input type="text" id="annInput" placeholder="修改收款公告..." style="width: 180px;">
@@ -118,9 +125,6 @@
             <input type="file" accept="image/*" style="color: #cbd5e1; font-size: 13px; width: 200px;" onchange="uploadMenu(this)">
         </div>
         <div class="toolbar-btns">
-            <label style="cursor: pointer; font-weight: bold; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px;">
-                <input type="checkbox" id="adminToggle" style="margin-right: 5px;"> 我是團主
-            </label>
             <button class="btn-stats" onclick="showStats()">📊 叫餐統計</button>
             <button class="btn-clear" onclick="clearOrders()">🧹 淨空訂單</button>
         </div>
@@ -130,7 +134,7 @@
         
         <div class="status-banner">
             <div class="announcement-row">
-                <div id="announceText" class="cash-info">📢 收現金 / 收 LINE Pay</div>
+                <div id="announceText" class="cash-info" onclick="triggerAdmin()">📢 收現金 / 收 LINE Pay</div>
                 <div class="time-info">截止時間：<span id="timeText" style="font-size:22px;">未設定</span></div>
             </div>
         </div>
@@ -201,16 +205,31 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // 🟢 個人身分識別 & 團主開關
+        // 🟢 識別使用者是否為團主
+        let isAdminMode = localStorage.getItem('isAdminMode') === 'true';
+        if(isAdminMode) document.getElementById('adminToolbar').style.display = 'flex';
+
+        // 🟢 隱藏開關：連續點擊大字 3 次切換團主模式
+        let clickCount = 0;
+        let clickTimer = null;
+        function triggerAdmin() {
+            clickCount++;
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => { clickCount = 0; }, 1000); // 1秒內連點才算
+            
+            if (clickCount >= 3) {
+                isAdminMode = !isAdminMode;
+                localStorage.setItem('isAdminMode', isAdminMode);
+                document.getElementById('adminToolbar').style.display = isAdminMode ? 'flex' : 'none';
+                database.ref('orders').once('value', snapshot => renderTable(snapshot.val()));
+                alert(isAdminMode ? "👑 團主模式已開啟！您可以管理所有訂單。" : "🔒 一般模式，團主工具列已隱藏。");
+                clickCount = 0;
+            }
+        }
+
+        // 個人身分識別 (保障一般人只能改自己的)
         let myId = localStorage.getItem('myDeviceId') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('myDeviceId', myId);
-
-        const adminToggle = document.getElementById('adminToggle');
-        adminToggle.checked = (localStorage.getItem('isAdminMode') === 'true');
-        adminToggle.addEventListener('change', (e) => {
-            localStorage.setItem('isAdminMode', e.target.checked);
-            database.ref('orders').once('value', snapshot => renderTable(snapshot.val()));
-        });
 
         let editingId = null;
 
@@ -228,17 +247,16 @@
             }
         }
 
-        // 🟢 自動壓縮圖片再上傳 (解決手機上傳卡死沒反應)
         function uploadMenu(input) {
             if (input.files && input.files[0]) {
-                alert("照片處理中，請稍候..."); // 提示使用者
+                alert("照片處理中，請稍候..."); 
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const img = new Image();
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        const MAX_WIDTH = 1000; // 壓縮寬度
+                        const MAX_WIDTH = 1000;
                         let width = img.width;
                         let height = img.height;
                         if (width > MAX_WIDTH) { height = Math.round(height *= MAX_WIDTH / width); width = MAX_WIDTH; }
@@ -293,7 +311,6 @@
             const pay = parseInt(document.getElementById('pay').value) || 0;
             if(!name || !item) return alert("請填寫姓名與品項內容！");
             
-            // 存入誰建立的資訊
             database.ref('orders').push({ name, item, price, pay, isPaid: false, owner: myId });
             
             document.getElementById('userName').value = ''; document.getElementById('userItem').value = '';
@@ -309,7 +326,6 @@
             const elItem = document.getElementById(`editItem_${id}`);
             const elPrice = document.getElementById(`editPrice_${id}`);
             const elPay = document.getElementById(`editPay_${id}`);
-
             if (!elItem) return;
             editingId = null;
             database.ref('orders').child(id).update({
@@ -324,7 +340,6 @@
             const paidBody = document.getElementById('paidBody');
             unpaidBody.innerHTML = paidBody.innerHTML = '';
             let tNeed = 0, tGet = 0;
-            const isAdmin = adminToggle.checked;
 
             if (orders) {
                 Object.keys(orders).forEach(id => {
@@ -334,9 +349,8 @@
                     const changeAmt = o.pay - o.price;
                     const safeItem = o.item.replace(/"/g, '&quot;');
                     
-                    // 🟢 權限判定：是自己點的，或是團主
                     const isOwner = (o.owner === myId);
-                    const canEdit = isOwner || isAdmin;
+                    const canEdit = isOwner || isAdminMode;
 
                     if (o.isPaid) {
                         tGet += o.pay;
@@ -352,7 +366,6 @@
                                 </td>
                             </tr>`;
                         } else {
-                            // 只有授權者能看到按鈕
                             let btnHtml = canEdit ? `<button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button> <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>` : `<span class="readonly-text">🔒 唯讀</span>`;
                             
                             paidBody.innerHTML += `<tr>
@@ -380,7 +393,7 @@
                             const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 $${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">$0</span>`;
                             
                             let btnHtml = '';
-                            if (isAdmin) btnHtml += `<button class="btn-confirm" onclick="markPaid('${id}')">✓ 收款</button> `;
+                            if (isAdminMode) btnHtml += `<button class="btn-confirm" onclick="markPaid('${id}')">✓ 收款</button> `;
                             if (canEdit) {
                                 btnHtml += `<button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button> <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>`;
                             } else {
