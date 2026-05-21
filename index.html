@@ -16,7 +16,7 @@
 
     <style>
         :root { --primary: #ff9f43; --danger: #e11d48; --success: #26de81; --bg: #f1f5f9; --dark: #1e293b; }
-        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: block; color: var(--dark); overflow-x: hidden; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 20px 20px 100px 20px; display: block; color: var(--dark); overflow-x: hidden; position: relative; min-height: 100vh; box-sizing: border-box; }
         
         .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
@@ -70,16 +70,17 @@
         .table-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .table-container h3 { margin-top: 0; padding-bottom: 15px; border-bottom: 4px solid var(--bg); font-weight: 900; }
         
+        /* ✅ 3. 表格排列一致性優化：兩張表格欄位比例完全一致對齊 */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
         th { text-align: left; background: #f8fafc; padding: 18px 24px; color: #64748b; font-weight: bold; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
         td { padding: 18px 24px; border-bottom: 1px solid #f1f5f9; font-size: 16px; white-space: nowrap; }
         
-        th:nth-child(1), td:nth-child(1) { width: 10%; } 
-        th:nth-child(2), td:nth-child(2) { width: 38%; white-space: normal; word-break: break-all; } 
-        th:nth-child(3), td:nth-child(3) { width: 10%; } 
-        th:nth-child(4), td:nth-child(4) { width: 10%; } 
-        th:nth-child(5), td:nth-child(5) { width: 14%; } 
-        th:nth-child(6), td:nth-child(6) { width: 18%; text-align: right; } 
+        th:nth-child(1), td:nth-child(1) { width: 10%; } /* 姓名 */
+        th:nth-child(2), td:nth-child(2) { width: 38%; white-space: normal; word-break: break-all; } /* 品項 */
+        th:nth-child(3), td:nth-child(3) { width: 10%; } /* 應付 */
+        th:nth-child(4), td:nth-child(4) { width: 10%; } /* 實收 */
+        th:nth-child(5), td:nth-child(5) { width: 14%; } /* 找零狀態 */
+        th:nth-child(6), td:nth-child(6) { width: 18%; text-align: right; } /* 功能按鈕欄 */
 
         .action-btns { display: flex; gap: 8px; flex-wrap: nowrap; justify-content: flex-end; align-items: center; }
         .btn-confirm { background: var(--success); color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 900; cursor: pointer; white-space: nowrap; }
@@ -96,14 +97,19 @@
         .stats-total { font-size: 18px; font-weight: bold; color: #4b5563; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px dashed #cbd5e1; }
         .stats-list { max-height: 400px; overflow-y: auto; padding-right: 10px; }
         
-        .stats-item { display: flex; justify-content: flex-start; align-items: center; padding: 5px 0; border-bottom: 1px dashed #e2e8f0; }
+        /* ✅ 2. 叫餐統計清單樣式優化（品項與份量拉近，名字靠右隔 50px） */
+        .stats-item { display: flex; justify-content: flex-start; align-items: center; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; }
         .stats-item-left { font-weight: bold; font-size: 16px; color: var(--dark); margin-right: 12px; white-space: nowrap; }
         .stats-count { font-weight: 900; font-size: 16px; color: var(--dark); white-space: nowrap; }
-        .stats-user-names { font-size: 13px; color: #94a3b8; margin-left: 40px; font-weight: normal; word-break: break-all; white-space: normal; } 
+        .stats-user-names { font-size: 13px; color: #94a3b8; margin-left: 50px; font-weight: normal; word-break: break-all; white-space: normal; }
+
+        /* 底部淡雅純文字橫條 */
+        .custom-footer { position: fixed; bottom: 0; left: 0; width: 100%; background-color: transparent; padding: 15px 40px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; z-index: 90; border-top: 1px solid #cbd5e1; }
+        .footer-center { font-size: 13px; font-weight: bold; letter-spacing: 1px; white-space: nowrap; color: #64748b; }
 
         /* 📱 手機版排版 */
         @media (max-width: 768px) {
-            body { padding: 10px 0; }
+            body { padding: 10px 0 80px 0; }
             .container { padding: 0 10px; }
             .page-title-section h1 { font-size: 28px; }
             .page-title-section h2 { font-size: 14px; }
@@ -129,8 +135,11 @@
             td:last-child { border-bottom: none; }
             td::before { content: attr(data-label); font-weight: 900; color: #64748b; float: left; }
             
-            .stats-item { flex-direction: row; align-items: center; justify-content: flex-start; overflow-x: auto; width: 100%; white-space: nowrap; padding: 5px 0; }
-            .stats-user-names { margin-left: 20px; margin-top: 0; white-space: nowrap; }
+            .stats-item { flex-direction: column; align-items: flex-start; }
+            .stats-user-names { margin-left: 0; margin-top: 5px; }
+            
+            .custom-footer { padding: 15px; }
+            .footer-center { font-size: 12px; }
         }
     </style>
 </head>
@@ -218,6 +227,10 @@
                 <tbody id="paidBody"></tbody>
             </table>
         </div>
+    </div>
+
+    <div class="custom-footer">
+        <div class="footer-center">今天也要好好吃飯 🍜 午餐時間快樂</div>
     </div>
 
     <div id="modalOverlay" class="modal-overlay" onclick="closeModal()"></div>
