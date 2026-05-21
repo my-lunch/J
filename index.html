@@ -99,7 +99,7 @@
         .stats-total { font-size: 18px; font-weight: bold; color: #4b5563; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px dashed #cbd5e1; }
         .stats-list { max-height: 350px; overflow-y: auto; padding-right: 10px; }
         
-        /* ✅ 2. 叫餐統計清單排版（🍱品項名稱 × 1　　　　人名）*/
+        /* ✅ 2. 叫餐統計清單排版（🍱品項名稱 × 1    人名）*/
         .stats-item { display: flex; justify-content: flex-start; align-items: center; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; }
         .stats-item-left { font-weight: bold; font-size: 16px; color: var(--dark); margin-right: 12px; white-space: nowrap; }
         .stats-count { font-weight: 900; font-size: 16px; color: var(--dark); white-space: nowrap; }
@@ -217,7 +217,7 @@
         <div class="table-container">
             <h3 style="color:var(--success)">✅ 所有已付款區</h3>
             <table id="paidTable">
-                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th></th><th></th></tr></thead>
+                <thead><tr><th>姓名</th><th>品項</th><th>應付</th><th>實收</th><th>找零狀態</th><th></th></tr></thead>
                 <tbody id="paidBody"></tbody>
             </table>
         </div>
@@ -372,40 +372,12 @@
                     
                     const isOwner = (o.owner === myId);
                     const canEdit = isOwner || isAdminMode;
+                    const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 $${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">$0</span>`;
 
                     if (o.isPaid) {
                         tGet += o.pay;
                         if (isEditing) {
-                            // ✅ 3. 已付款區編輯狀態：多補一個空白 <td> 讓欄位結構與未付款區絕對一致
                             paidBody.innerHTML += `<tr>
-                                <td data-label="姓名"><strong>${o.name}</strong></td>
-                                <td data-label="品項"><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
-                                <td data-label="應付"><input type="number" id="editPrice_${id}" class="inline-input" value="${o.price}" style="width:60px"></td>
-                                <td data-label="實收"><input type="number" id="editPay_${id}" class="inline-input" value="${o.pay}" style="width:60px"></td>
-                                <td></td>
-                                <td data-label="">
-                                    <div class="action-btns">
-                                        <button class="btn-save" onclick="saveEdit('${id}')">💾 儲存</button>
-                                        <button class="btn-del" onclick="cancelEdit()">取消</button>
-                                    </div>
-                                </td>
-                            </tr>`;
-                        } else {
-                            let btnHtml = canEdit ? `<button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button> <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>` : `<span class="readonly-text">🔒 唯讀</span>`;
-                            
-                            // ✅ 3. 已付款區唯讀狀態：多補一個空白 <td> 欄位
-                            paidBody.innerHTML += `<tr>
-                                <td data-label="姓名"><strong>${o.name}</strong></td>
-                                <td data-label="品項" style="color:#475569">${o.item}</td>
-                                <td data-label="應付">$${o.price}</td>
-                                <td data-label="實收" style="color:var(--success); font-weight:900;">$${o.pay}</td>
-                                <td></td>
-                                <td data-label=""><div class="action-btns">${btnHtml}</div></td>
-                            </tr>`;
-                        }
-                    } else {
-                        if (isEditing) {
-                            unpaidBody.innerHTML += `<tr>
                                 <td data-label="姓名"><strong>${o.name}</strong></td>
                                 <td data-label="品項"><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
                                 <td data-label="應付"><input type="number" id="editPrice_${id}" class="inline-input" value="${o.price}" style="width:60px"></td>
@@ -419,74 +391,21 @@
                                 </td>
                             </tr>`;
                         } else {
-                            const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 $${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">$0</span>`;
+                            let btnHtml = canEdit ? `<button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button> <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>` : `<span class="readonly-text">🔒 唯讀</span>`;
                             
-                            let btnHtml = '';
-                            if (isAdminMode) btnHtml += `<button class="btn-confirm" onclick="markPaid('${id}')">✓ 收款</button> `;
-                            if (canEdit) {
-                                btnHtml += `<button class="btn-edit" onclick="startEdit('${id}')">✏️ 修改</button> <button class="btn-del" onclick="deleteOrder('${id}')">❌</button>`;
-                            } else {
-                                btnHtml += `<span class="readonly-text">🔒 唯讀</span>`;
-                            }
-
-                            unpaidBody.innerHTML += `<tr>
+                            /* ✅ 2. 已付款區唯讀狀態下，補上「找零狀態」欄位 */
+                            paidBody.innerHTML += `<tr>
                                 <td data-label="姓名"><strong>${o.name}</strong></td>
                                 <td data-label="品項" style="color:#475569">${o.item}</td>
                                 <td data-label="應付">$${o.price}</td>
-                                <td data-label="實收" style="color:#94a3b8">$${o.pay}</td>
+                                <td data-label="實收" style="color:var(--success); font-weight:900;">$${o.pay}</td>
                                 <td data-label="找零狀態">${changeText}</td>
                                 <td data-label=""><div class="action-btns">${btnHtml}</div></td>
                             </tr>`;
                         }
-                    }
-                });
-            }
-            
-            document.getElementById('totalNeed').innerText = tNeed;
-            document.getElementById('totalGet').innerText = tGet;
-            document.getElementById('totalPending').innerText = Math.max(0, tNeed - tGet);
-        }
-
-        database.ref('orders').on('value', (snapshot) => renderTable(snapshot.val()));
-
-        // ✅ 2. 精確調整統計：品項與 × 數量靠在一起，名字排在右邊並留白 50px 距離
-        function showStats() {
-            database.ref('orders').once('value', (s) => {
-                const orders = s.val(); 
-                const stats = {}; let total = 0; 
-                if(orders) {
-                    Object.values(orders).forEach(o => { 
-                        o.item.split(/[+＋,，、/]/).forEach(singleItem => {
-                            const name = singleItem.trim();
-                            if(name) { 
-                                if (!stats[name]) {
-                                    stats[name] = { count: 0, users: [] };
-                                }
-                                stats[name].count++;
-                                if (!stats[name].users.includes(o.name)) {
-                                    stats[name].users.push(o.name);
-                                }
-                                total++; 
-                            }
-                        });
-                    }); 
-                }
-                document.getElementById('statsTotal').innerText = `總計：${total} 份`;
-                document.getElementById('statsContent').innerHTML = Object.entries(stats).map(([k,v]) => `
-                    <div class="stats-item">
-                        <div class="stats-item-left">🍱 ${k}</div>
-                        <span class="stats-count">× ${v.count}</span>
-                        <span class="stats-user-names">${v.users.join('、')}</span>
-                    </div>
-                `).join('');
-                document.getElementById('statsModal').style.display = 'block'; 
-                document.getElementById('modalOverlay').style.display = 'block';
-            });
-        }
-
-        function closeModal() { document.getElementById('statsModal').style.display = 'none'; document.getElementById('modalOverlay').style.display = 'none'; }
-        function deleteOrder(id) { if(confirm("確定刪除？")) database.ref('orders').child(id).remove(); }
-        function clearOrders() { if(confirm("確定清空所有數據？")) database.ref('orders').remove(); }
-    </script>
-</body>
-</html>
+                    } else {
+                        if (isEditing) {
+                            unpaidBody.innerHTML += `<tr>
+                                <td data-label="姓名"><strong>${o.name}</strong></td>
+                                <td data-label="品項"><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
+                                <td data-label="應付"><input type="number" id="editPrice_${id}"
