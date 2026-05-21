@@ -24,18 +24,17 @@
         .page-title-section h1 { margin: 0; font-size: 32px; font-weight: 900; color: var(--dark); letter-spacing: 2px; }
         .page-title-section h2 { margin: 6px 0 0 0; font-size: 16px; font-weight: bold; color: #64748b; letter-spacing: 5px; }
 
-        /* ✅ 2. 控制面板元件與內容完全置中對齊 */
-        .admin-toolbar { display: none; flex-direction: column; background: var(--dark); padding: 20px; border-radius: 12px; align-items: center; justify-content: center; margin-bottom: 10px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); gap: 15px; box-sizing: border-box; text-align: center; }
-        .toolbar-left { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; width: 100%; }
-        .toolbar-left input { padding: 10px; border: 1px solid #444; background: #2d3748; color: white; border-radius: 6px; font-size: 14px; }
-        .toolbar-left input::placeholder { color: #a0aec0; }
+        /* ✅ 2. 團主控制面板：在電腦版完全「縮成一行」並且內容全部置中排列 */
+        .admin-toolbar { display: none; flex-direction: row; flex-wrap: nowrap; background: var(--dark); padding: 15px 25px; border-radius: 12px; align-items: center; justify-content: center; margin-bottom: 10px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); gap: 15px; box-sizing: border-box; width: 100%; white-space: nowrap; }
+        .toolbar-inner-group { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .admin-toolbar input { padding: 10px; border: 1px solid #444; background: #2d3748; color: white; border-radius: 6px; font-size: 14px; height: 38px; box-sizing: border-box; }
+        .admin-toolbar input::placeholder { color: #a0aec0; }
         
         .ann-input { width: 180px; }
         .time-input { width: 120px; }
-        .file-input { width: 220px; color: #cbd5e1; font-size: 13px; }
+        .file-input { width: 220px; color: #cbd5e1; font-size: 13px; border: none !important; background: transparent !important; padding: 0 !important; }
 
-        .toolbar-btns { display: flex; justify-content: center; gap: 10px; align-items: center; flex-wrap: wrap; width: 100%; }
-        .toolbar-btns button, .toolbar-left button { padding: 10px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .admin-toolbar button { padding: 0 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; height: 38px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
         .btn-sync { background: var(--primary); color: white; }
         .btn-stats { background: #a55eea; color: white; }
         .btn-clear { background: #747d8c; color: white; }
@@ -70,56 +69,56 @@
         .live-change-box { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 0 10px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: 900; color: var(--dark); height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
         .live-change-box.has-change { color: var(--danger); background: #fff1f2; border-color: var(--danger); }
 
-        /* 表格區 */
         .table-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .table-container h3 { margin-top: 0; padding-bottom: 15px; border-bottom: 4px solid var(--bg); font-weight: 900; }
         
-        /* ✅ 1. 表格欄位間距大幅度拉開，拒絕擁擠與多餘刪除線 */
+        /* ✅ 1. 表格欄位左右寬鬆大間距，徹底解決文字卡住、擠壓與橫線問題 */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: auto; }
-        th { text-align: left; background: #f8fafc; padding: 18px 20px; color: #64748b; font-weight: bold; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 18px 20px; border-bottom: 1px solid #f1f5f9; font-size: 16px; word-break: break-all; }
+        th { text-align: left; background: #f8fafc; padding: 18px 24px; color: #64748b; font-weight: bold; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+        td { padding: 18px 24px; border-bottom: 1px solid #f1f5f9; font-size: 16px; word-break: normal; white-space: nowrap; }
         
-        /* 設定特定欄位最小寬度，強迫距離撐開 */
-        th:nth-child(1), td:nth-child(1) { min-width: 100px; } /* 姓名 */
-        th:nth-child(2), td:nth-child(2) { min-width: 220px; } /* 品項 */
-        th:nth-child(3), td:nth-child(3) { min-width: 90px; }  /* 應付 */
-        th:nth-child(4), td:nth-child(4) { min-width: 90px; }  /* 實收 */
-        th:nth-child(5), td:nth-child(5) { min-width: 120px; } /* 找零狀態 */
-        th:nth-child(6), td:nth-child(6) { min-width: 160px; text-align: right; } /* 功能按鈕欄 */
+        /* 強制將每一直欄與左右拉開適當分配比例 */
+        th:nth-child(1), td:nth-child(1) { width: 12%; min-width: 110px; } /* 姓名 */
+        th:nth-child(2), td:nth-child(2) { width: 35%; min-width: 260px; white-space: normal; word-break: break-all; } /* 品項（允許換行） */
+        th:nth-child(3), td:nth-child(3) { width: 10%; min-width: 90px; }  /* 應付 */
+        th:nth-child(4), td:nth-child(4) { width: 10%; min-width: 90px; }  /* 實收 */
+        th:nth-child(5), td:nth-child(5) { width: 15%; min-width: 130px; } /* 找零狀態 */
+        th:nth-child(6), td:nth-child(6) { width: 18%; min-width: 170px; text-align: right; } /* 功能按鈕欄 */
 
-        .action-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
-        .btn-confirm { background: var(--success); color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 900; cursor: pointer; }
-        .btn-edit { background: #4b5563; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-save { background: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-del { color: #cbd5e1; background: none; border: none; cursor: pointer; font-size: 16px; padding: 8px; border-radius: 6px;}
+        .action-btns { display: flex; gap: 8px; flex-wrap: nowrap; justify-content: flex-end; align-items: center; }
+        .btn-confirm { background: var(--success); color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 900; cursor: pointer; white-space: nowrap; }
+        .btn-edit { background: #4b5563; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .btn-save { background: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .btn-del { color: #cbd5e1; background: none; border: none; cursor: pointer; font-size: 16px; padding: 8px; border-radius: 6px; white-space: nowrap; }
         .btn-del:hover { background: #fee2e2; color: var(--danger); }
-        .readonly-text { color: #94a3b8; font-size: 14px; font-weight: bold; padding: 8px; }
+        .readonly-text { color: #94a3b8; font-size: 14px; font-weight: bold; padding: 8px; white-space: nowrap; }
         .inline-input { padding: 8px; border: 2px solid var(--primary); border-radius: 6px; font-size: 15px; width: 90%; box-sizing: border-box; font-weight: bold; }
 
-        #statsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 100px rgba(0,0,0,0.4); z-index: 100; min-width: 400px; max-width: 550px; }
+        #statsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 100px rgba(0,0,0,0.4); z-index: 100; min-width: 420px; max-width: 600px; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); z-index: 99; }
         .stats-header { font-size: 20px; font-weight: 900; color: var(--dark); margin-bottom: 15px; }
         .stats-total { font-size: 18px; font-weight: bold; color: #4b5563; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px dashed #cbd5e1; }
         .stats-list { max-height: 350px; overflow-y: auto; padding-right: 10px; }
         
-        /* ✅ 3. 叫餐統計清單排版（ 🍱 品項 　　× 1 　人名） */
+        /* ✅ 3. 叫餐統計清單排版（ 🍱 品項名稱 　　　× 1 　　　人名） */
         .stats-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #e2e8f0; }
         .stats-item-left { font-weight: bold; font-size: 16px; color: var(--dark); }
         .stats-item-right { display: flex; align-items: center; justify-content: flex-end; }
-        .stats-count { font-weight: 900; font-size: 17px; color: var(--danger); white-space: nowrap; }
-        .stats-user-names { font-size: 13px; color: #94a3b8; margin-left: 25px; font-weight: normal; white-space: nowrap; }
+        .stats-count { font-weight: 900; font-size: 17px; color: var(--dark); white-space: nowrap; }
+        .stats-user-names { font-size: 13px; color: #94a3b8; margin-left: 50px; font-weight: normal; white-space: nowrap; text-align: right; } /* 指定 50px 的超大安全間距 */
 
         /* 📱 手機版排版 */
         @media (max-width: 768px) {
             body { padding: 10px 0; }
             .container { padding: 0 10px; }
-            
             .page-title-section h1 { font-size: 28px; }
             .page-title-section h2 { font-size: 14px; }
 
-            .admin-toolbar { padding: 20px 15px; margin: 0; }
+            .admin-toolbar { flex-direction: column; flex-wrap: wrap; padding: 20px 15px; margin: 0; white-space: normal; }
+            .toolbar-inner-group { flex-direction: column; width: 100%; gap: 10px; }
             .ann-input, .time-input, .file-input { width: 100% !important; box-sizing: border-box; }
-            .toolbar-left button, .toolbar-btns button { width: 100%; padding: 12px; font-size: 16px; }
+            .admin-toolbar button { width: 100%; padding: 12px; font-size: 16px; }
+            .toolbar-btns { flex-direction: column; align-items: stretch; width: 100%; margin-top: 5px; }
 
             .announcement-row { flex-direction: column; gap: 12px; align-items: center; text-align: center; }
             .cash-info { font-size: 20px; }
@@ -138,9 +137,9 @@
             table, thead, tbody, th, td, tr { display: block; }
             thead { display: none; }
             tr { margin-bottom: 15px; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-            td { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #f1f5f9; padding: 8px 0; min-width: 0 !important; }
-            td:last-child { border-bottom: none; text-align: right; }
-            td::before { content: attr(data-label); font-weight: 900; color: #64748b; }
+            td { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #f1f5f9; padding: 8px 0; min-width: 0 !important; width: 100% !important; text-align: right !important; }
+            td:last-child { border-bottom: none; }
+            td::before { content: attr(data-label); font-weight: 900; color: #64748b; float: left; }
         }
     </style>
 </head>
@@ -154,19 +153,15 @@
         </div>
 
         <div class="admin-toolbar" id="adminToolbar">
-            <span style="font-weight:bold; color:var(--primary); text-align:center; display:block; width:100%; font-size: 18px;">👑 團主控制面板</span>
-            <div class="toolbar-left">
+            <div class="toolbar-inner-group">
+                <span style="font-weight:bold; color:var(--primary); font-size: 15px;">👑 團主控制：</span>
                 <input type="text" id="annInput" class="ann-input" placeholder="修改收款公告...">
                 <input type="text" id="timeInput" class="time-input" placeholder="時間(例如 11:00)">
                 <button class="btn-sync" onclick="updateAnnouncement()">同步公告與時間</button>
-            </div>
-            <div class="toolbar-left" style="margin-top: 5px;">
-                <span style="font-weight:bold; font-size:14px;">上傳菜單圖檔：</span>
+                <span style="font-weight:bold; font-size:14px; color: #cbd5e1; margin-left: 5px;">上傳菜單：</span>
                 <input type="file" accept="image/*" class="file-input" onchange="uploadMenu(this)">
-            </div>
-            <div class="toolbar-btns" style="margin-top: 10px;">
-                <button class="btn-stats" onclick="showStats()">📊 叫餐統計清單</button>
-                <button class="btn-clear" onclick="clearOrders()">🧹 淨空所有訂單</button>
+                <button class="btn-stats" onclick="showStats()">📊 叫餐統計</button>
+                <button class="btn-clear" onclick="clearOrders()">🧹 淨空訂單</button>
             </div>
         </div>
         
@@ -458,7 +453,7 @@
 
         database.ref('orders').on('value', (snapshot) => renderTable(snapshot.val()));
 
-        // ✅ 3. 精確調整：品項固定在最左邊，右側先顯示「× 份數」，最後才是「淡灰色人名」，中間有大段安全距離
+        // ✅ 3. 精確調整統計：灰色姓名排在右側 × 份數的右手邊，中間給予 50px 寬度的絕對防撞距離
         function showStats() {
             database.ref('orders').once('value', (s) => {
                 const orders = s.val(); 
