@@ -46,8 +46,7 @@
         .time-label { font-size: 14px; font-weight: bold; }
         .time-value { font-size: 28px; font-weight: 900; margin: 0 5px; line-height: 1; }
 
-        /* ✅ 修正：移除任何可能造成固定釘選（Fixed/Absolute）的設定，讓它回歸標準的彈性排版，隨畫面流暢滾動 */
-        .admin-checkbox-secret { width: 15px; height: 15px; cursor: pointer; opacity: 0.15; margin-left: 12px; vertical-align: middle; display: inline-block; }
+        .admin-checkbox-secret { width: 15px; height: 15px; cursor: pointer; opacity: 0.15; margin-left: 10px; }
         .admin-checkbox-secret:hover { opacity: 0.8; }
 
         .menu-wrapper { width: 100%; display: none; text-align: center; }
@@ -91,7 +90,6 @@
         .readonly-text { color: #94a3b8; font-size: 14px; font-weight: bold; padding: 8px; white-space: nowrap; }
         .inline-input { padding: 8px; border: 2px solid var(--primary); border-radius: 6px; font-size: 15px; width: 95%; box-sizing: border-box; font-weight: bold; }
 
-        /* ✅ 回復：叫餐統計回復經典固定比例設計 */
         #statsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 100px rgba(0,0,0,0.4); z-index: 100; min-width: 450px; max-width: 700px; width: 90%; box-sizing: border-box; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); z-index: 99; }
         .stats-header { font-size: 20px; font-weight: 900; color: var(--dark); margin-bottom: 15px; }
@@ -102,6 +100,9 @@
         .stats-item-left { font-weight: bold; font-size: 16px; color: var(--dark); margin-right: 12px; white-space: nowrap; }
         .stats-count { font-weight: 900; font-size: 16px; color: var(--dark); white-space: nowrap; }
         .stats-user-names { font-size: 13px; color: #94a3b8; margin-left: 40px; font-weight: normal; word-break: break-all; white-space: normal; } 
+
+        /* ✅ 修正：為跟隨滾動的頁尾文字設定樣式（設定字體顏色與置中，保留原本的清爽乾淨） */
+        .page-footer { text-align: center; color: #94a3b8; font-size: 16px; font-weight: bold; padding: 15px 0 30px 0; margin-top: 10px; letter-spacing: 1px; }
 
         /* 📱 手機版排版 */
         @media (max-width: 768px) {
@@ -163,8 +164,8 @@
                     <div class="time-info">
                         <span class="time-label">截止</span>
                         <span id="timeText" class="time-value">未設定</span>
-                        <input type="checkbox" id="adminToggle" class="admin-checkbox-secret" onclick="toggleAdminMode()" title="隱藏開關">
                     </div>
+                    <input type="checkbox" id="adminToggle" class="admin-checkbox-secret" onclick="toggleAdminMode()" title="隱藏開關">
                 </div>
             </div>
         </div>
@@ -220,6 +221,10 @@
                 <tbody id="paidBody"></tbody>
             </table>
         </div>
+
+        <footer class="page-footer">
+            午餐也要好好吃飯 🍜 午餐時間快樂
+        </footer>
     </div>
 
     <div id="modalOverlay" class="modal-overlay" onclick="closeModal()"></div>
