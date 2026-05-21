@@ -313,7 +313,7 @@
             const time = document.getElementById('timeInput').value.trim();
             const updates = {};
             if(text) updates.text = text;
-            if(time) updates.deadline = time + " 截止";
+            if(time) updates.deadline = time + " 截止時間";
             if(text || time) {
                 database.ref('config/announcement').update(updates)
                     .then(() => alert("公告同步成功！"));
