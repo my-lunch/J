@@ -221,7 +221,7 @@
                 <p id="totalGet">0</p>
             </div>
             <div class="card">
-                <h3>剩餘待收</h3>
+                <h3>未付款金額</h3>
                 <p id="totalPending" class="text-red">0</p>
             </div>
         </div>
@@ -261,7 +261,6 @@
             database.ref('orders').once('value', s => renderTable(s.val()));
         }
 
-        // ✅ 新增智慧型連動函式：當應付金額輸入時，自動把實付金額填入相同數值並計算找零
         function syncPriceToPay() {
             const priceInput = document.getElementById('price').value;
             document.getElementById('pay').value = priceInput;
@@ -378,13 +377,18 @@
             const unpaidBody = document.getElementById('unpaidBody');
             const paidBody = document.getElementById('paidBody');
             unpaidBody.innerHTML = paidBody.innerHTML = '';
-            let tNeed = 0, tGet = 0;
+            
+            // 歸零統計變數
+            let tNeed = 0, tGet = 0, tUnpaid = 0;
             let isAdminMode = document.getElementById('adminToggle').checked;
 
             if (orders) {
                 Object.keys(orders).forEach(id => {
                     const o = orders[id];
+                    
+                    // 1. 總金額邏輯維持不變：畫面上「所有訂單」的應付金額總和
                     tNeed += o.price;
+                    
                     const isEditing = (editingId === id);
                     const changeAmt = o.pay - o.price;
                     const safeItem = o.item.replace(/"/g, '&quot;');
@@ -394,11 +398,8 @@
                     const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 ${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">0</span>`;
 
                     if (o.isPaid) {
-                        if (changeAmt <= 0 || o.changeSettled) {
-                            tGet += o.price;
-                        } else {
-                            tGet += o.pay;
-                        }
+                        // ✅ 修正 2：已收現金變更為「已付款區所有實收金額 (o.pay) 的加總」
+                        tGet += o.pay;
 
                         if (isEditing) {
                             paidBody.innerHTML += `<tr>
@@ -440,6 +441,9 @@
                             </tr>`;
                         }
                     } else {
+                        // ✅ 修正 3：未付款金額變更為「未付款區所有應付金額 (o.price) 的加總」
+                        tUnpaid += o.price;
+
                         if (isEditing) {
                             unpaidBody.innerHTML += `<tr>
                                 <td data-label="姓名"><strong>${o.name}</strong></td>
@@ -476,9 +480,10 @@
                 });
             }
             
+            // 更新看板數據
             document.getElementById('totalNeed').innerText = tNeed;
             document.getElementById('totalGet').innerText = tGet;
-            document.getElementById('totalPending').innerText = Math.max(0, tNeed - tGet);
+            document.getElementById('totalPending').innerText = tUnpaid; // 完美綁定未付款應付加總
         }
 
         database.ref('orders').on('value', (snapshot) => renderTable(snapshot.val()));
