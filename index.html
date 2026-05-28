@@ -183,7 +183,7 @@
             <div class="form-grid">
                 <div class="form-group"><label>姓名</label><input type="text" id="userName" placeholder="AMY"></div>
                 <div class="form-group col-span-2"><label>品項</label><input type="text" id="userItem" placeholder="蒜香清炒-雞胸蛤蠣義大利麵"></div>
-                <div class="form-group"><label>應付</label><input type="number" id="price" placeholder="100" oninput="calculateLiveChange()"></div>
+                <div class="form-group"><label>應付</label><input type="number" id="price" placeholder="100" oninput="syncPriceToPay()"></div>
                 <div class="form-group"><label>實付</label><input type="number" id="pay" placeholder="100" oninput="calculateLiveChange()"></div>
                 
                 <div class="form-group">
@@ -259,6 +259,13 @@
             localStorage.setItem('isAdminMode', isAdm);
             document.getElementById('adminToolbar').style.display = isAdm ? 'flex' : 'none';
             database.ref('orders').once('value', s => renderTable(s.val()));
+        }
+
+        // ✅ 新增智慧型連動函式：當應付金額輸入時，自動把實付金額填入相同數值並計算找零
+        function syncPriceToPay() {
+            const priceInput = document.getElementById('price').value;
+            document.getElementById('pay').value = priceInput;
+            calculateLiveChange();
         }
 
         function calculateLiveChange() {
@@ -387,9 +394,6 @@
                     const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 ${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">0</span>`;
 
                     if (o.isPaid) {
-                        /* ✅ 核心修正：計算「已收現金 (tGet)」的即時防呆邏輯
-                           如果不需要找錢，或者「需要找錢，而且團主已經點擊按鈕確認找過錢了」，這時手頭上真正的實收現金只會留下應得的品項原價（o.price）。
-                           如果還沒找錢，手頭上的金額依然是包含零錢在內的初始大鈔金額（o.pay）。 */
                         if (changeAmt <= 0 || o.changeSettled) {
                             tGet += o.price;
                         } else {
