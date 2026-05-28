@@ -67,7 +67,6 @@
         .live-change-box { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 0 10px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: 900; color: var(--dark); height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
         .live-change-box.has-change { color: var(--danger); background: #fff1f2; border-color: var(--danger); }
 
-        /* 電腦版表格外容器基本樣式 */
         .table-container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .table-container h3 { margin-top: 0; padding-bottom: 15px; border-bottom: 4px solid var(--bg); font-weight: 900; }
         
@@ -104,11 +103,11 @@
         .stats-item { display: flex; justify-content: flex-start; align-items: center; padding: 5px 0; border-bottom: 1px dashed #e2e8f0; }
         .stats-item-left { font-weight: bold; font-size: 16px; color: var(--dark); margin-right: 12px; white-space: nowrap; }
         .stats-count { font-weight: 900; font-size: 16px; color: var(--dark); white-space: nowrap; }
-        .stats-user-names { font-size: 12px; color: #94a3b8; margin-left: 40px; font-weight: normal; word-break: break-all; white-space: normal; } 
+        .stats-user-names { font-size: 13px; color: #94a3b8; margin-left: 40px; font-weight: normal; word-break: break-all; white-space: normal; } 
 
         .page-footer { text-align: center; color: #94a3b8; font-size: 13px; font-weight: bold; padding: 15px 0 30px 0; margin-top: 10px; letter-spacing: 1px; }
 
-        /* 📱 手機版 RWD 終極修正區 */
+        /* 📱 手機版 RWD 排版 */
         @media (max-width: 768px) {
             body { padding: 10px 0; }
             .container { padding: 0 10px; }
@@ -128,16 +127,13 @@
             .form-grid { grid-template-columns: 1fr; gap: 15px; }
             .col-span-2 { grid-column: span 1; }
             
-            /* ✅ 修正 1：給手機版表格外容器加上「橫向滾動軸」，並強制表格最低寬度 650px，寬敞排列，絕不疊在一起 */
             .table-container { overflow-x: auto; padding: 20px 15px; }
-            table { table-layout: fixed; width: 650px; } /* 固定最低總寬度，讓 6 個欄位有足夠的橫向舒展空間 */
+            table { table-layout: fixed; width: 650px; } 
             
-            /* ✅ 修正 2：手機版內表格字體與間距精細壓縮 */
             th, td { padding: 10px 4px; font-size: 13px; }
             .action-btns button { padding: 5px 6px; font-size: 11px; }
             .inline-input { padding: 4px; font-size: 12px; }
             
-            /* ✅ 修正 3：手機版的打勾、鎖頭圖示再次精確縮小到 12px，小小一個完全不突兀 */
             .status-icon-only { font-size: 12px !important; }
             
             .stats-item { flex-direction: row; align-items: center; justify-content: flex-start; overflow-x: auto; width: 100%; white-space: nowrap; padding: 5px 0; }
@@ -416,8 +412,9 @@
                                 if (o.changeSettled) {
                                     changeStatusHtml = `<span style="color:var(--success);" class="status-icon-only">☑</span>`;
                                 } else {
+                                    // ✅ 修正：把待找的金額完美顯示在按鈕中！例如：☒ 找 $15
                                     changeStatusHtml = isAdminMode ? 
-                                        `<button class="btn-change-done" onclick="settleChange('${id}')">☒ 確認找錢</button>` : 
+                                        `<button class="btn-change-done" onclick="settleChange('${id}')">☒ 找 $${changeAmt}</button>` : 
                                         `<span style="color:var(--danger); font-weight:900;">☒ 待找 $${changeAmt}</span>`;
                                 }
                             }
