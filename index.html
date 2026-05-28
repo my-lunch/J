@@ -367,6 +367,7 @@
             });
         }
 
+        /* ✅ 修正 1：移除所有 td 表格顯示字串中的 $ 符號 */
         function renderTable(orders) {
             const unpaidBody = document.getElementById('unpaidBody');
             const paidBody = document.getElementById('paidBody');
@@ -384,7 +385,8 @@
                     
                     const isOwner = (o.owner === myId);
                     const canEdit = isOwner || isAdminMode;
-                    const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 $${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">$0</span>`;
+                    /* ✅ 修正：未付款區找零狀態中的 $ 拔除 */
+                    const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 ${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">0</span>`;
 
                     if (o.isPaid) {
                         tGet += o.pay;
@@ -412,18 +414,18 @@
                                 if (o.changeSettled) {
                                     changeStatusHtml = `<span style="color:var(--success);" class="status-icon-only">☑</span>`;
                                 } else {
-                                    // ✅ 精確修正：將按鈕內部的 $ 符號拿掉，只留數字（例如： ☒ 找 15 ）
+                                    /* ✅ 修正：已付款區管理者找零與非管理者提示的 $ 拔除 */
                                     changeStatusHtml = isAdminMode ? 
                                         `<button class="btn-change-done" onclick="settleChange('${id}')">☒ 找 ${changeAmt}</button>` : 
-                                        `<span style="color:var(--danger); font-weight:900;">☒ 待找 $${changeAmt}</span>`;
+                                        `<span style="color:var(--danger); font-weight:900;">☒ 待找 ${changeAmt}</span>`;
                                 }
                             }
 
                             paidBody.innerHTML += `<tr>
                                 <td data-label="姓名"><strong>${o.name}</strong></td>
                                 <td data-label="品項" style="color:#475569">${o.item}</td>
-                                <td data-label="應付">$${o.price}</td>
-                                <td data-label="實收" style="color:var(--success); font-weight:900;">$${o.pay}</td>
+                                <td data-label="應付">${o.price}</td>
+                                <td data-label="實收" style="color:var(--success); font-weight:900;">${o.pay}</td>
                                 <td data-label="找零狀態">${changeStatusHtml}</td>
                                 <td data-label=""><div class="action-btns">${btnHtml}</div></td>
                             </tr>`;
@@ -455,8 +457,8 @@
                             unpaidBody.innerHTML += `<tr>
                                 <td data-label="姓名"><strong>${o.name}</strong></td>
                                 <td data-label="品項" style="color:#475569">${o.item}</td>
-                                <td data-label="應付">$${o.price}</td>
-                                <td data-label="實收" style="color:#94a3b8">$${o.pay}</td>
+                                <td data-label="應付">${o.price}</td>
+                                <td data-label="實收" style="color:#94a3b8">${o.pay}</td>
                                 <td data-label="找零狀態">${changeText}</td>
                                 <td data-label=""><div class="action-btns">${btnHtml}</div></td>
                             </tr>`;
