@@ -412,9 +412,9 @@
                                 if (o.changeSettled) {
                                     changeStatusHtml = `<span style="color:var(--success);" class="status-icon-only">☑</span>`;
                                 } else {
-                                    // ✅ 修正：把待找的金額完美顯示在按鈕中！例如：☒ 找 $15
+                                    // ✅ 精確修正：將按鈕內部的 $ 符號拿掉，只留數字（例如： ☒ 找 15 ）
                                     changeStatusHtml = isAdminMode ? 
-                                        `<button class="btn-change-done" onclick="settleChange('${id}')">☒ 找 $${changeAmt}</button>` : 
+                                        `<button class="btn-change-done" onclick="settleChange('${id}')">☒ 找 ${changeAmt}</button>` : 
                                         `<span style="color:var(--danger); font-weight:900;">☒ 待找 $${changeAmt}</span>`;
                                 }
                             }
