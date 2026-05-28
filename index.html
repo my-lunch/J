@@ -367,7 +367,6 @@
             });
         }
 
-        /* ✅ 修正 1：移除所有 td 表格顯示字串中的 $ 符號 */
         function renderTable(orders) {
             const unpaidBody = document.getElementById('unpaidBody');
             const paidBody = document.getElementById('paidBody');
@@ -385,11 +384,18 @@
                     
                     const isOwner = (o.owner === myId);
                     const canEdit = isOwner || isAdminMode;
-                    /* ✅ 修正：未付款區找零狀態中的 $ 拔除 */
                     const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900;">找零 ${changeAmt}</span>` : `<span style="color:#747d8c; font-weight:bold;">0</span>`;
 
                     if (o.isPaid) {
-                        tGet += o.pay;
+                        /* ✅ 核心修正：計算「已收現金 (tGet)」的即時防呆邏輯
+                           如果不需要找錢，或者「需要找錢，而且團主已經點擊按鈕確認找過錢了」，這時手頭上真正的實收現金只會留下應得的品項原價（o.price）。
+                           如果還沒找錢，手頭上的金額依然是包含零錢在內的初始大鈔金額（o.pay）。 */
+                        if (changeAmt <= 0 || o.changeSettled) {
+                            tGet += o.price;
+                        } else {
+                            tGet += o.pay;
+                        }
+
                         if (isEditing) {
                             paidBody.innerHTML += `<tr>
                                 <td data-label="姓名"><strong>${o.name}</strong></td>
@@ -414,7 +420,6 @@
                                 if (o.changeSettled) {
                                     changeStatusHtml = `<span style="color:var(--success);" class="status-icon-only">☑</span>`;
                                 } else {
-                                    /* ✅ 修正：已付款區管理者找零與非管理者提示的 $ 拔除 */
                                     changeStatusHtml = isAdminMode ? 
                                         `<button class="btn-change-done" onclick="settleChange('${id}')">☒ 找 ${changeAmt}</button>` : 
                                         `<span style="color:var(--danger); font-weight:900;">☒ 待找 ${changeAmt}</span>`;
