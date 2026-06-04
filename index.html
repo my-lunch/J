@@ -489,6 +489,32 @@
 
         database.ref('orders').on('value', (snapshot) => renderTable(snapshot.val()));
 
+        // 👇 智能點餐分類排序引擎
+        function getSortKey(name) {
+            let cat = "2"; // 預設：中間 (單點配餐)
+            // 判斷是否為主食 (最上面)
+            if (/(堡|麵|飯|冬粉|粄條|米粉|水餃|鍋貼|吐司|三明治|套餐|披薩|餐|粥|餃|烏龍|雞腿|排骨|爌肉)/.test(name)) cat = "1";
+            // 判斷是否為飲料 (最下面)
+            if (/(茶|奶|咖啡|拿鐵|可樂|雪碧|果汁|冰|飲|豆漿|水|汽水)/.test(name)) cat = "3";
+
+            // 👇 核心食材群聚 (強制把相關肉類綁在一起)
+            let subCat = "99";
+            if (name.includes('牛')) subCat = "01";
+            else if (name.includes('豬')) subCat = "02";
+            else if (name.includes('雞')) subCat = "03";
+            else if (name.includes('魚') || name.includes('鮭') || name.includes('鱈') || name.includes('蝦')) subCat = "04";
+            else if (name.includes('堡')) subCat = "05";
+            else if (name.includes('吐司') || name.includes('三明治')) subCat = "06";
+            else if (name.includes('蛋餅')) subCat = "07";
+            else if (name.includes('麵')) subCat = "08";
+            else if (name.includes('飯')) subCat = "09";
+            else if (name.includes('套餐')) subCat = "10";
+            else if (name.includes('薯')) subCat = "11";
+            else if (name.includes('蛋')) subCat = "12";
+
+            return cat + "-" + subCat + "-" + name;
+        }
+
         function showStats() {
             database.ref('orders').once('value', (s) => {
                 const orders = s.val(); 
@@ -531,7 +557,13 @@
                 }
                 
                 document.getElementById('statsTotal').innerText = `總計：${total} 份`;
-                document.getElementById('statsContent').innerHTML = Object.entries(stats).map(([k,v]) => `
+                
+                // 👇 使用智能引擎進行排序：先比大分類，再比食材，最後回歸純粹的文字拼音排序
+                const sortedStats = Object.entries(stats).sort((a, b) => {
+                    return getSortKey(a[0]).localeCompare(getSortKey(b[0]), 'zh-TW');
+                });
+                
+                document.getElementById('statsContent').innerHTML = sortedStats.map(([k,v]) => `
                     <div class="stats-item">
                         <div class="stats-item-left">🍱 ${k}</div>
                         <span class="stats-count">× ${v.count}</span>
