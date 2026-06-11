@@ -615,13 +615,25 @@
                         }
                         processedItems.push({ name: currentName, item: currentItem });
                     }
+                    
                     processedItems.forEach(o => { 
                         o.item.split(/[+＋]/).forEach(singleItem => {
-                            const name = singleItem.trim();
-                            if(name) { 
-                                if (!stats[name]) stats[name] = { count: 0, users: [] };
-                                stats[name].count++;
-                                if (!stats[name].users.includes(o.name)) stats[name].users.push(o.name);
+                            const originalName = singleItem.trim();
+                            if(originalName) { 
+                                // 👇 核心過濾機制：忽略所有空白、減號、括號，只比對純文字
+                                const normKey = originalName.replace(/[ \-\(\)（）]/g, '');
+                                
+                                if (!stats[normKey]) {
+                                    stats[normKey] = { 
+                                        displayName: originalName, // 畫面上保留第一個人輸入的原始名字
+                                        count: 0, 
+                                        users: [] 
+                                    };
+                                }
+                                stats[normKey].count++;
+                                if (!stats[normKey].users.includes(o.name)) {
+                                    stats[normKey].users.push(o.name);
+                                }
                                 total++; 
                             }
                         });
@@ -630,20 +642,22 @@
                 
                 document.getElementById('statsTotal').innerHTML = `總計：<span style="color:var(--danger); font-size:24px;">${total}</span> 份`;
                 
-                const sortedStats = Object.entries(stats).sort((a, b) => getSortKey(a[0]).localeCompare(getSortKey(b[0]), 'zh-TW'));
+                // 👇 排序時使用過濾後的資料
+                const sortedStats = Object.values(stats).sort((a, b) => getSortKey(a.displayName).localeCompare(getSortKey(b.displayName), 'zh-TW'));
                 
-                sortedStats.forEach(([k, v]) => {
-                    statsTextForCopy += `${k} x ${v.count}\n`;
+                sortedStats.forEach((v) => {
+                    statsTextForCopy += `${v.displayName} x ${v.count}\n`;
                 });
                 statsTextForCopy += `\n總計：${total} 份`;
 
-                document.getElementById('statsContent').innerHTML = sortedStats.map(([k,v]) => `
+                document.getElementById('statsContent').innerHTML = sortedStats.map((v) => `
                     <div class="stats-item">
-                        <div class="stats-item-left"><span style="font-size: 12px;">🍱</span> ${k}</div>
+                        <div class="stats-item-left"><span style="font-size: 12px;">🍱</span> ${v.displayName}</div>
                         <span class="stats-count">× ${v.count}</span>
                         <span class="stats-user-names">${v.users.join('、')}</span>
                     </div>
                 `).join('');
+                
                 document.getElementById('statsModal').style.display = 'block'; 
                 document.getElementById('modalOverlay').style.display = 'block';
             });
