@@ -25,7 +25,7 @@
         .page-title-section h2 { margin: 6px 0 0 0; font-size: 16px; font-weight: bold; color: #64748b; letter-spacing: 5px; }
 
         .admin-toolbar { display: none; flex-direction: row; flex-wrap: wrap; background: var(--dark); padding: 15px 20px; border-radius: 12px; align-items: center; justify-content: center; margin-bottom: 10px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); gap: 12px; box-sizing: border-box; width: 100%; }
-        .admin-toolbar input { padding: 8px 12px; border: 1px solid #444; background: #2d3748; color: white; border-radius: 6px; font-size: 14px; height: 36px; box-sizing: border-box; }
+        .admin-toolbar input { padding: 8px 12px; border: 1px solid #444; background: #2d3748; color: white; border-radius: 6px; font-size: 14px; height: 36px; box-sizing: border-box; width: 100%; }
         .admin-toolbar input::placeholder { color: #a0aec0; }
         
         .ann-input { width: 150px; }
@@ -424,11 +424,11 @@
                 return;
             }
 
-            // 👇 溫和的淨化機制：統一括號與加號格式，不破壞原本的輸入
+            // 👇 溫和的淨化機制：送出時統一括號與加號格式，不留多餘符號與空白
             let cleanItem = rawItem;
-            cleanItem = cleanItem.replace(/（/g, '(').replace(/）/g, ')'); // 全形括號轉半形
-            cleanItem = cleanItem.replace(/\s*\(\s*/g, '(').replace(/\s*\)\s*/g, ')'); // 拿掉括號周圍的空白
-            cleanItem = cleanItem.replace(/\s*[+＋]\s*/g, '+'); // 加號統一為半形，並移除周圍空白
+            cleanItem = cleanItem.replace(/（/g, '(').replace(/）/g, ')'); 
+            cleanItem = cleanItem.replace(/\s*\(\s*/g, '(').replace(/\s*\)\s*/g, ')'); 
+            cleanItem = cleanItem.replace(/\s*[+＋]\s*/g, '+'); 
             
             try { 
                 if (window.localStorage) {
@@ -625,12 +625,20 @@
                         o.item.split(/[+＋]/).forEach(singleItem => {
                             const originalName = singleItem.trim();
                             if(originalName) { 
-                                // 過濾空白與括號，幫助合併相同品項
-                                const normKey = originalName.replace(/[ \-\(\)（）]/g, '');
+                                // 核心比對機制：把所有可能干擾合併的符號通通去乾淨
+                                const normKey = originalName.replace(/[ \-\(\)（）\/\_]/g, '');
                                 
+                                // 👇 你的核心心願：在叫餐統計畫面上，不論舊資料是什麼符號，一律強制美化為「品項(備註)」
+                                let formattedName = originalName.replace(/（/g, '(').replace(/）/g, ')');
+                                formattedName = formattedName.replace(/[\-\_\/\s]+/g, '('); 
+                                if (formattedName.includes('(') && !formattedName.endsWith(')')) {
+                                    formattedName = formattedName + ')';
+                                }
+                                formattedName = formattedName.replace(/\(+/g, '(').replace(/\)+/g, ')');
+
                                 if (!stats[normKey]) {
                                     stats[normKey] = { 
-                                        displayName: originalName, 
+                                        displayName: formattedName, 
                                         count: 0, 
                                         users: [] 
                                     };
@@ -663,7 +671,6 @@
                         <span class="stats-user-names">${v.users.join('、')}</span>
                     </div>
                 `).join('');
-                
                 document.getElementById('statsModal').style.display = 'block'; 
                 document.getElementById('modalOverlay').style.display = 'block';
             });
