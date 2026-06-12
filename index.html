@@ -412,16 +412,21 @@
             }
 
             const name = nameEl.value.trim();
-            const item = itemEl.value.trim();
+            let rawItem = itemEl.value.trim(); // 先把他們打的原始文字拿出來
             const price = parseInt(priceEl.value) || 0;
             const payVal = payEl.value.trim();
             
             const pay = payVal === '' ? price : (parseInt(payVal) || 0);
             
-            if(!name || !item) {
+            if(!name || !rawItem) {
                 alert("請確實填寫姓名與品項內容！");
                 return;
             }
+
+            // 👇 你的神來一筆：在送單瞬間強制淨化格式！
+            let cleanItem = rawItem.replace(/[（）\(\)\/  ]/g, '-'); // 把所有半形/全形括號、斜線、空白，都強制變成減號
+            cleanItem = cleanItem.replace(/-+/g, '-'); // 如果出現「--」多個減號連在一起，就縮減成一個
+            cleanItem = cleanItem.replace(/^-|-$/g, ''); // 把最前面或最後面多餘的減號卡掉
             
             try { 
                 if (window.localStorage) {
@@ -435,9 +440,10 @@
                 btn.disabled = true;
             }
 
+            // 👇 把淨化後的 cleanItem 存進資料庫
             database.ref('orders').push({ 
                 name: name, 
-                item: item, 
+                item: cleanItem, 
                 price: price, 
                 pay: pay, 
                 isPaid: false, 
