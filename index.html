@@ -25,7 +25,7 @@
         .page-title-section h2 { margin: 6px 0 0 0; font-size: 16px; font-weight: bold; color: #64748b; letter-spacing: 5px; }
 
         .admin-toolbar { display: none; flex-direction: row; flex-wrap: wrap; background: var(--dark); padding: 15px 20px; border-radius: 12px; align-items: center; justify-content: center; margin-bottom: 10px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); gap: 12px; box-sizing: border-box; width: 100%; }
-        .admin-toolbar input { padding: 8px 12px; border: 1px solid #444; background: #2d3748; color: white; border-radius: 6px; font-size: 14px; height: 36px; box-sizing: border-box; width: 100%; }
+        .admin-toolbar input { padding: 8px 12px; border: 1px solid #444; background: #2d3748; color: white; border-radius: 6px; font-size: 14px; height: 36px; box-sizing: border-box; }
         .admin-toolbar input::placeholder { color: #a0aec0; }
         
         .ann-input { width: 150px; }
@@ -269,6 +269,25 @@
         let isOrderLocked = false;
         let statsTextForCopy = "";
 
+        // 👇 最核心的品名淨化大腦！所有品項都會經過這裡清洗
+        function formatItemName(str) {
+            if (!str) return "";
+            let res = str.trim();
+            // 1. 所有的全形括號轉換為半形括號
+            res = res.replace(/（/g, '(').replace(/）/g, ')'); 
+            // 2. 將容易混淆的減號(-)、斜線(/)、反斜線(\)、頓號(、)全部統一換成底線(_)
+            res = res.replace(/[\-\/\\、]/g, '_'); 
+            // 3. 刪除「所有空白」字元！確保大家不管加幾個空白，都會被視為同一個餐點
+            res = res.replace(/\s/g, ''); 
+            // 4. 把多個連續的底線合併為單一底線
+            res = res.replace(/_+/g, '_'); 
+            // 5. 確保字尾和字首沒有多餘的底線
+            res = res.replace(/_+$/g, '').replace(/^_+/g, ''); 
+            // 6. 如果底線剛好出現在加號(+)旁邊，就清理掉，例如: 鴨片飯_+燙青菜 -> 鴨片飯+燙青菜
+            res = res.replace(/_\+/g, '+').replace(/\+_/g, '+'); 
+            return res;
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             try {
                 if (window.localStorage) {
@@ -413,22 +432,19 @@
             }
 
             const name = nameEl.value.trim();
-            let rawItem = itemEl.value.trim(); 
+            const rawItem = itemEl.value; 
             const price = parseInt(priceEl.value) || 0;
             const payVal = payEl.value.trim();
             
             const pay = payVal === '' ? price : (parseInt(payVal) || 0);
             
-            if(!name || !rawItem) {
+            // 👇 送單瞬間套用強力洗澡過濾器，確保寫進資料庫就是最乾淨的格式
+            const cleanItem = formatItemName(rawItem);
+
+            if(!name || !cleanItem) {
                 alert("請確實填寫姓名與品項內容！");
                 return;
             }
-
-            // 👇 溫和的淨化機制：送出時統一括號與加號格式，不留多餘符號與空白
-            let cleanItem = rawItem;
-            cleanItem = cleanItem.replace(/（/g, '(').replace(/）/g, ')'); 
-            cleanItem = cleanItem.replace(/\s*\(\s*/g, '(').replace(/\s*\)\s*/g, ')'); 
-            cleanItem = cleanItem.replace(/\s*[+＋]\s*/g, '+'); 
             
             try { 
                 if (window.localStorage) {
@@ -444,7 +460,7 @@
 
             database.ref('orders').push({ 
                 name: name, 
-                item: cleanItem, 
+                item: cleanItem, // 存入淨化後的品項名稱
                 price: price, 
                 pay: pay, 
                 isPaid: false, 
@@ -478,8 +494,12 @@
             const elPay = document.getElementById(`editPay_${id}`);
             if (!elItem) return;
             editingId = null;
+            
+            // 👇 修改訂單時，一樣套用強力過濾器
+            const cleanItem = formatItemName(elItem.value);
+
             database.ref('orders').child(id).update({
-                item: elItem.value.trim(),
+                item: cleanItem,
                 price: parseInt(elPrice.value) || 0,
                 pay: parseInt(elPay.value) || 0
             });
@@ -584,20 +604,7 @@
             let cat = "2"; 
             if (/(堡|麵|飯|冬粉|粄條|米粉|水餃|鍋貼|吐司|三明治|套餐|披薩|餐|粥|餃|烏龍|雞腿|排骨|爌肉)/.test(name)) cat = "1";
             if (/(茶|奶|咖啡|拿鐵|可樂|雪碧|果汁|冰|飲|豆漿|水|汽水)/.test(name)) cat = "3";
-            let subCat = "99";
-            if (name.includes('牛')) subCat = "01";
-            else if (name.includes('豬')) subCat = "02";
-            else if (name.includes('雞')) subCat = "03";
-            else if (name.includes('魚') || name.includes('鮭') || name.includes('鱈') || name.includes('蝦')) subCat = "04";
-            else if (name.includes('堡')) subCat = "05";
-            else if (name.includes('吐司') || name.includes('三明治')) subCat = "06";
-            else if (name.includes('蛋餅')) subCat = "07";
-            else if (name.includes('麵')) subCat = "08";
-            else if (name.includes('飯')) subCat = "09";
-            else if (name.includes('套餐')) subCat = "10";
-            else if (name.includes('薯')) subCat = "11";
-            else if (name.includes('蛋')) subCat = "12";
-            return cat + "-" + subCat + "-" + name;
+            return cat + "-" + name;
         }
 
         function showStats() {
@@ -623,29 +630,19 @@
                     }
                     processedItems.forEach(o => { 
                         o.item.split(/[+＋]/).forEach(singleItem => {
-                            const originalName = singleItem.trim();
-                            if(originalName) { 
-                                // 核心比對機制：把所有可能干擾合併的符號通通去乾淨
-                                const normKey = originalName.replace(/[ \-\(\)（）\/\_]/g, '');
-                                
-                                // 👇 你的核心心願：在叫餐統計畫面上，不論舊資料是什麼符號，一律強制美化為「品項(備註)」
-                                let formattedName = originalName.replace(/（/g, '(').replace(/）/g, ')');
-                                formattedName = formattedName.replace(/[\-\_\/\s]+/g, '('); 
-                                if (formattedName.includes('(') && !formattedName.endsWith(')')) {
-                                    formattedName = formattedName + ')';
-                                }
-                                formattedName = formattedName.replace(/\(+/g, '(').replace(/\)+/g, ')');
-
-                                if (!stats[normKey]) {
-                                    stats[normKey] = { 
+                            // 👇 為了確保舊的歷史資料也能完美合併，這裡再套用一次強力過濾器
+                            const formattedName = formatItemName(singleItem);
+                            if(formattedName) { 
+                                if (!stats[formattedName]) {
+                                    stats[formattedName] = { 
                                         displayName: formattedName, 
                                         count: 0, 
                                         users: [] 
                                     };
                                 }
-                                stats[normKey].count++;
-                                if (!stats[normKey].users.includes(o.name)) {
-                                    stats[normKey].users.push(o.name);
+                                stats[formattedName].count++;
+                                if (!stats[formattedName].users.includes(o.name)) {
+                                    stats[formattedName].users.push(o.name);
                                 }
                                 total++; 
                             }
@@ -678,7 +675,7 @@
 
         function copyStatsText() {
             if (!statsTextForCopy || statsTextForCopy.includes("總計：0 份")) {
-                alert("目前還沒人點餐喔！");
+                alert("目前還沒有任何訂單喔！");
                 return;
             }
             const el = document.createElement('textarea');
