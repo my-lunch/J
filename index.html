@@ -188,7 +188,7 @@
                 </div>
                 <div style="width: 44%; padding-right: 25px; box-sizing: border-box;">
                     <label class="mobile-only-label">品項</label>
-                    <input type="text" id="userItem" placeholder="蒜香清炒_雞胸蛤蠣義大利麵" class="form-box">
+                    <input type="text" id="userItem" placeholder="蒜香清炒-雞胸蛤蠣義大利麵" class="form-box">
                 </div>
                 <div style="width: 13%; padding-right: 15px; box-sizing: border-box;">
                     <label class="mobile-only-label">應付</label>
@@ -268,25 +268,6 @@
         let editingId = null;
         let isOrderLocked = false;
         let statsTextForCopy = "";
-
-        // 👇 最核心的品名淨化大腦！所有品項都會經過這裡清洗
-        function formatItemName(str) {
-            if (!str) return "";
-            let res = str.trim();
-            // 1. 所有的全形括號轉換為半形括號
-            res = res.replace(/（/g, '(').replace(/）/g, ')'); 
-            // 2. 將容易混淆的減號(-)、斜線(/)、反斜線(\)、頓號(、)全部統一換成底線(_)
-            res = res.replace(/[\-\/\\、]/g, '_'); 
-            // 3. 刪除「所有空白」字元！確保大家不管加幾個空白，都會被視為同一個餐點
-            res = res.replace(/\s/g, ''); 
-            // 4. 把多個連續的底線合併為單一底線
-            res = res.replace(/_+/g, '_'); 
-            // 5. 確保字尾和字首沒有多餘的底線
-            res = res.replace(/_+$/g, '').replace(/^_+/g, ''); 
-            // 6. 如果底線剛好出現在加號(+)旁邊，就清理掉，例如: 鴨片飯_+燙青菜 -> 鴨片飯+燙青菜
-            res = res.replace(/_\+/g, '+').replace(/\+_/g, '+'); 
-            return res;
-        }
 
         document.addEventListener("DOMContentLoaded", () => {
             try {
@@ -432,19 +413,22 @@
             }
 
             const name = nameEl.value.trim();
-            const rawItem = itemEl.value; 
+            let rawItem = itemEl.value.trim(); 
             const price = parseInt(priceEl.value) || 0;
             const payVal = payEl.value.trim();
             
             const pay = payVal === '' ? price : (parseInt(payVal) || 0);
             
-            // 👇 送單瞬間套用強力洗澡過濾器，確保寫進資料庫就是最乾淨的格式
-            const cleanItem = formatItemName(rawItem);
-
-            if(!name || !cleanItem) {
+            if(!name || !rawItem) {
                 alert("請確實填寫姓名與品項內容！");
                 return;
             }
+
+            // 👇 送單瞬間套用強力洗澡過濾器，確保寫進資料庫就是最乾淨的格式
+            let cleanItem = rawItem.replace(/（/g, '(').replace(/）/g, ')'); // 全形變半形
+            cleanItem = cleanItem.replace(/[\-\/\\]/g, '_'); // - 與 / 通通轉成底線 _
+            cleanItem = cleanItem.replace(/\s+/g, ''); // 刪除所有空白
+            cleanItem = cleanItem.replace(/_+/g, '_'); // 連續多個底線合併為一
             
             try { 
                 if (window.localStorage) {
@@ -460,7 +444,7 @@
 
             database.ref('orders').push({ 
                 name: name, 
-                item: cleanItem, // 存入淨化後的品項名稱
+                item: cleanItem, 
                 price: price, 
                 pay: pay, 
                 isPaid: false, 
@@ -494,9 +478,12 @@
             const elPay = document.getElementById(`editPay_${id}`);
             if (!elItem) return;
             editingId = null;
-            
-            // 👇 修改訂單時，一樣套用強力過濾器
-            const cleanItem = formatItemName(elItem.value);
+
+            // 👇 修改訂單時也一樣，強制洗澡格式化
+            let cleanItem = elItem.value.trim().replace(/（/g, '(').replace(/）/g, ')');
+            cleanItem = cleanItem.replace(/[\-\/\\]/g, '_');
+            cleanItem = cleanItem.replace(/\s+/g, '');
+            cleanItem = cleanItem.replace(/_+/g, '_');
 
             database.ref('orders').child(id).update({
                 item: cleanItem,
@@ -604,7 +591,20 @@
             let cat = "2"; 
             if (/(堡|麵|飯|冬粉|粄條|米粉|水餃|鍋貼|吐司|三明治|套餐|披薩|餐|粥|餃|烏龍|雞腿|排骨|爌肉)/.test(name)) cat = "1";
             if (/(茶|奶|咖啡|拿鐵|可樂|雪碧|果汁|冰|飲|豆漿|水|汽水)/.test(name)) cat = "3";
-            return cat + "-" + name;
+            let subCat = "99";
+            if (name.includes('牛')) subCat = "01";
+            else if (name.includes('豬')) subCat = "02";
+            else if (name.includes('雞')) subCat = "03";
+            else if (name.includes('魚') || name.includes('鮭') || name.includes('鱈') || name.includes('蝦')) subCat = "04";
+            else if (name.includes('堡')) subCat = "05";
+            else if (name.includes('吐司') || name.includes('三明治')) subCat = "06";
+            else if (name.includes('蛋餅')) subCat = "07";
+            else if (name.includes('麵')) subCat = "08";
+            else if (name.includes('飯')) subCat = "09";
+            else if (name.includes('套餐')) subCat = "10";
+            else if (name.includes('薯')) subCat = "11";
+            else if (name.includes('蛋')) subCat = "12";
+            return cat + "-" + subCat + "-" + name;
         }
 
         function showStats() {
@@ -630,19 +630,30 @@
                     }
                     processedItems.forEach(o => { 
                         o.item.split(/[+＋]/).forEach(singleItem => {
-                            // 👇 為了確保舊的歷史資料也能完美合併，這裡再套用一次強力過濾器
-                            const formattedName = formatItemName(singleItem);
-                            if(formattedName) { 
-                                if (!stats[formattedName]) {
-                                    stats[formattedName] = { 
-                                        displayName: formattedName, 
+                            let originalName = singleItem.trim();
+                            if(originalName) { 
+                                // 1. 先把舊資料也強制洗乾淨 (套用一樣的底線與括號規則)
+                                let formatName = originalName.replace(/（/g, '(').replace(/）/g, ')');
+                                formatName = formatName.replace(/[\-\/\\]/g, '_');
+                                formatName = formatName.replace(/\s+/g, '');
+                                formatName = formatName.replace(/_+/g, '_');
+
+                                // 2. 無敵合併大腦：將符號剝掉，只留「純中文、英文、數字」比對！
+                                // 這樣 鴨片飯_小 跟 鴨片飯(小) 都會變成 鴨片飯小，完美黏在一起！
+                                const normKey = formatName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '');
+                                
+                                if (!normKey) return; // 防呆
+
+                                if (!stats[normKey]) {
+                                    stats[normKey] = { 
+                                        displayName: formatName, // 畫面會顯示乾淨底線或括號的版本
                                         count: 0, 
                                         users: [] 
                                     };
                                 }
-                                stats[formattedName].count++;
-                                if (!stats[formattedName].users.includes(o.name)) {
-                                    stats[formattedName].users.push(o.name);
+                                stats[normKey].count++;
+                                if (!stats[normKey].users.includes(o.name)) {
+                                    stats[normKey].users.push(o.name);
                                 }
                                 total++; 
                             }
