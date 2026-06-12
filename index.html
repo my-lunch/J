@@ -412,7 +412,7 @@
             }
 
             const name = nameEl.value.trim();
-            let rawItem = itemEl.value.trim(); // 先把他們打的原始文字拿出來
+            let rawItem = itemEl.value.trim(); 
             const price = parseInt(priceEl.value) || 0;
             const payVal = payEl.value.trim();
             
@@ -423,10 +423,11 @@
                 return;
             }
 
-            // 👇 你的神來一筆：在送單瞬間強制淨化格式！
-            let cleanItem = rawItem.replace(/[（）\(\)\/  ]/g, '-'); // 把所有半形/全形括號、斜線、空白，都強制變成減號
-            cleanItem = cleanItem.replace(/-+/g, '-'); // 如果出現「--」多個減號連在一起，就縮減成一個
-            cleanItem = cleanItem.replace(/^-|-$/g, ''); // 把最前面或最後面多餘的減號卡掉
+            // 👇 升級版的底線淨化機制！
+            let cleanItem = rawItem.replace(/[)）]/g, ''); // 1. 直接把右括號刪除，不要留痕跡
+            cleanItem = cleanItem.replace(/[ (（\/  \-]+/g, '_'); // 2. 把空白、斜線、左括號、原本的減號，全部合併成一個底線
+            cleanItem = cleanItem.replace(/_+(\+|$)/g, '$1'); // 3. 如果底線後面剛好是 + 號或句尾，就把底線收乾淨
+            cleanItem = cleanItem.replace(/^_/, ''); // 4. 把最前面的底線也收乾淨
             
             try { 
                 if (window.localStorage) {
@@ -440,7 +441,6 @@
                 btn.disabled = true;
             }
 
-            // 👇 把淨化後的 cleanItem 存進資料庫
             database.ref('orders').push({ 
                 name: name, 
                 item: cleanItem, 
