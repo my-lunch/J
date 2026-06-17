@@ -108,19 +108,19 @@
         .desktop-labels { display: flex; width: 100%; margin-bottom: 10px; font-weight: 800; font-size: 14px; color: #64748b; text-align: left; letter-spacing: 0.5px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
         
+        /* 👇 重新調配寬度：給按鈕區(6)足夠空間防擠壓，並將找零區(5)向左推移對齊 */
         th { position: sticky; top: 0; z-index: 10; text-align: left; background: #f8fafc; padding: 16px 10px 16px 0; color: #64748b; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; box-sizing: border-box; }
         td { padding: 18px 10px 18px 0; border-bottom: 1px solid #f1f5f9; font-size: 16px; white-space: nowrap; box-sizing: border-box; text-align: left; transition: 0.2s; }
         tbody tr:hover td { background-color: #fafcfd; }
         th:first-child, td:first-child { padding-left: 10px; } 
         th:last-child, td:last-child { padding-right: 10px; }
         
-        /* 👇 找零欄位完美垂直置中對齊 */
         th:nth-child(1), td:nth-child(1) { width: 12%; padding-right: 15px; } 
-        th:nth-child(2), td:nth-child(2) { width: 44%; padding-right: 25px; white-space: normal; word-break: break-all; font-weight: bold; } 
+        th:nth-child(2), td:nth-child(2) { width: 38%; padding-right: 25px; white-space: normal; word-break: break-all; font-weight: bold; } 
         th:nth-child(3), td:nth-child(3) { width: 12%; } 
         th:nth-child(4), td:nth-child(4) { width: 12%; } 
-        th:nth-child(5), td:nth-child(5) { width: 10%; text-align: center; } /* 置中確保數字與打勾對齊 */
-        th:nth-child(6), td:nth-child(6) { width: 10%; text-align: right; } 
+        th:nth-child(5), td:nth-child(5) { width: 10%; text-align: center; padding-right: 15px; } /* 置中，並靠 padding-right 往實收方向推移防擠 */
+        th:nth-child(6), td:nth-child(6) { width: 16%; text-align: right; } /* 加大按鈕區，避免跟找零疊在一起 */
 
         .action-btns { display: flex; gap: 6px; flex-wrap: nowrap; justify-content: flex-end; align-items: center; }
         
@@ -190,7 +190,6 @@
             #statsModal > div:first-child { display: flex !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; gap: 4px; padding-bottom: 10px !important; margin-bottom: 10px !important; }
             .stats-header { font-size: 14px !important; flex-shrink: 0; }
             
-            /* 👇 1. 手機版總分數間距拉近為 10px */
             .stats-total { margin: 0 0 0 10px !important; font-size: 14px !important; text-align: left !important; flex-grow: 1; }
             .stats-total span { font-size: 20px !important; } 
             #statsModal button.btn-sync[onclick="copyStatsText()"] { padding: 4px 8px !important; font-size: 11px !important; flex-shrink: 0; box-sizing: border-box; }
@@ -200,7 +199,7 @@
             .stats-item-left { flex: none; white-space: nowrap; margin-right: 8px; font-size: 14px; }
             .stats-count { font-size: 14px; margin-top: 0; flex: none; white-space: nowrap; }
             
-            .stats-user-names { width: auto; margin-left: 28px !important; margin-top: 0; white-space: nowrap; font-size: 11px !important; background: transparent; padding: 0; color: #94a3b8 !important; flex: none; font-weight: normal; }
+            .stats-user-names { width: auto; margin-left: 28px !important; margin-top: 0; white-space: nowrap; font-size: 11px !important; background: transparent; padding: 0; color: #94a3b8 !important; flex: none; font-weight: normal; word-break: break-all; }
         }
     </style>
 </head>
@@ -598,7 +597,7 @@
                     const isOwner = (o.owner === myId);
                     const canEdit = isOwner || isAdminMode;
                     
-                    /* 👇 1. 拿掉找字，讓純數字能完美置中對齊 */
+                    /* 👇 1. 完全拿掉「找」字，數字與打勾完全置中對齊 */
                     const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900; font-size:16px;">${changeAmt}</span>` : `<span style="color:#94a3b8; font-weight:bold; font-size:16px;">0</span>`;
 
                     if (o.isPaid) {
@@ -622,7 +621,7 @@
                                 const toggleStatus = !o.changeSettled;
                                 const toggleFn = `database.ref('orders').child('${id}').update({changeSettled: ${toggleStatus}})` ;
                                 if (o.changeSettled) changeStatusHtml = `<span style="color:var(--success); font-weight:900; cursor:pointer; font-size:16px;" onclick="${toggleFn}">✓</span>`;
-                                /* 👇 2. 已付款區按鈕拔除底線與邊框，字體16px，無找字，完美垂直對齊打勾 */
+                                /* 👇 2. 已付款區按鈕拔除底線與邊框，不含找字，純數字完美置中 */
                                 else changeStatusHtml = isAdminMode ? `<button type="button" onclick="${toggleFn}" style="background:none; border:none; padding:0; margin:0; color:var(--danger); font-weight:900; font-size:16px; cursor:pointer; font-family:inherit;">${changeAmt}</button>` : `<span style="color:var(--danger); font-weight:900; font-size:16px;">${changeAmt}</span>`;
                             }
                             paidBody.innerHTML += `<tr>
