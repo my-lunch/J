@@ -108,7 +108,6 @@
         .desktop-labels { display: flex; width: 100%; margin-bottom: 10px; font-weight: 800; font-size: 14px; color: #64748b; text-align: left; letter-spacing: 0.5px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
         
-        /* 👇 重新調配寬度：給按鈕區(6)足夠空間防擠壓，並將找零區(5)向左推移對齊 */
         th { position: sticky; top: 0; z-index: 10; text-align: left; background: #f8fafc; padding: 16px 10px 16px 0; color: #64748b; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; box-sizing: border-box; }
         td { padding: 18px 10px 18px 0; border-bottom: 1px solid #f1f5f9; font-size: 16px; white-space: nowrap; box-sizing: border-box; text-align: left; transition: 0.2s; }
         tbody tr:hover td { background-color: #fafcfd; }
@@ -119,8 +118,8 @@
         th:nth-child(2), td:nth-child(2) { width: 38%; padding-right: 25px; white-space: normal; word-break: break-all; font-weight: bold; } 
         th:nth-child(3), td:nth-child(3) { width: 12%; } 
         th:nth-child(4), td:nth-child(4) { width: 12%; } 
-        th:nth-child(5), td:nth-child(5) { width: 10%; text-align: center; padding-right: 15px; } /* 置中，並靠 padding-right 往實收方向推移防擠 */
-        th:nth-child(6), td:nth-child(6) { width: 16%; text-align: right; } /* 加大按鈕區，避免跟找零疊在一起 */
+        th:nth-child(5), td:nth-child(5) { width: 10%; text-align: center; padding-right: 15px; } 
+        th:nth-child(6), td:nth-child(6) { width: 16%; text-align: right; } 
 
         .action-btns { display: flex; gap: 6px; flex-wrap: nowrap; justify-content: flex-end; align-items: center; }
         
@@ -147,7 +146,11 @@
         .stats-list { max-height: 750px; overflow-y: auto; padding-right: 10px; margin-bottom: 15px; }
         .stats-list::-webkit-scrollbar { width: 6px; }
         .stats-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .stats-item { display: flex; justify-content: flex-start; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+        
+        /* 👇 叫餐統計列表項目：加入 Hover 淺淺底色與平滑過渡效果 */
+        .stats-item { display: flex; justify-content: flex-start; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s; border-radius: 8px; box-sizing: border-box; }
+        .stats-item:hover { background-color: #f1f5f9; cursor: default; }
+        
         .stats-item-left { font-weight: 800; font-size: 18px; color: var(--dark); margin-right: 12px; white-space: nowrap; }
         .stats-count { font-weight: 900; font-size: 18px; color: var(--primary); white-space: nowrap; margin-right: 15px; }
         .stats-user-names { font-size: 14px; color: #94a3b8; font-weight: normal; word-break: break-all; white-space: normal; } 
@@ -195,7 +198,9 @@
             #statsModal button.btn-sync[onclick="copyStatsText()"] { padding: 4px 8px !important; font-size: 11px !important; flex-shrink: 0; box-sizing: border-box; }
             
             .stats-list { max-height: 55vh; padding-right: 5px; padding-bottom: 10px; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; } 
-            .stats-item { flex-wrap: nowrap; align-items: center; justify-content: flex-start; width: max-content; min-width: 100%; padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
+            
+            /* 👇 手機版也要確保 padding 讓底色能完美覆蓋 */
+            .stats-item { flex-wrap: nowrap; align-items: center; justify-content: flex-start; width: max-content; min-width: 100%; padding: 12px 8px; border-bottom: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
             .stats-item-left { flex: none; white-space: nowrap; margin-right: 8px; font-size: 14px; }
             .stats-count { font-size: 14px; margin-top: 0; flex: none; white-space: nowrap; }
             
@@ -597,7 +602,6 @@
                     const isOwner = (o.owner === myId);
                     const canEdit = isOwner || isAdminMode;
                     
-                    /* 👇 1. 完全拿掉「找」字，數字與打勾完全置中對齊 */
                     const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900; font-size:16px;">${changeAmt}</span>` : `<span style="color:#94a3b8; font-weight:bold; font-size:16px;">0</span>`;
 
                     if (o.isPaid) {
@@ -621,7 +625,6 @@
                                 const toggleStatus = !o.changeSettled;
                                 const toggleFn = `database.ref('orders').child('${id}').update({changeSettled: ${toggleStatus}})` ;
                                 if (o.changeSettled) changeStatusHtml = `<span style="color:var(--success); font-weight:900; cursor:pointer; font-size:16px;" onclick="${toggleFn}">✓</span>`;
-                                /* 👇 2. 已付款區按鈕拔除底線與邊框，不含找字，純數字完美置中 */
                                 else changeStatusHtml = isAdminMode ? `<button type="button" onclick="${toggleFn}" style="background:none; border:none; padding:0; margin:0; color:var(--danger); font-weight:900; font-size:16px; cursor:pointer; font-family:inherit;">${changeAmt}</button>` : `<span style="color:var(--danger); font-weight:900; font-size:16px;">${changeAmt}</span>`;
                             }
                             paidBody.innerHTML += `<tr>
@@ -668,7 +671,6 @@
 
         database.ref('orders').on('value', (snapshot) => renderTable(snapshot.val()));
 
-        /* 👇 3. 完美客製化分類排序：飯 -> 麵 -> 涼麵 -> 湯 -> 菜 -> 小菜 -> 飲料 */
         function getGroupKey(name) {
             let cat = "99";
             if (name.includes('飯')) cat = "01";
@@ -731,7 +733,6 @@
                 
                 document.getElementById('statsTotal').innerHTML = `<span style="color:var(--danger); font-size:26px;">${total}</span> 份`;
                 
-                /* 使用自定義分類排序 */
                 const sortedStats = Object.values(stats).sort((a, b) => {
                     return getGroupKey(a.displayName).localeCompare(getGroupKey(b.displayName), 'zh-TW');
                 });
