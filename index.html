@@ -22,24 +22,31 @@
         }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 24px 20px; display: block; color: var(--dark); overflow-x: hidden; }
         
-        .container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+        .container { max-width: 1000px; margin: 0 auto; display: none; flex-direction: column; gap: 12px; }
+        .container.active { display: flex; }
         
         .page-title-section { text-align: center; margin-top: 5px; margin-bottom: 20px; }
         .page-title-section h1 { margin: 0; font-size: 34px; font-weight: 900; color: var(--dark); letter-spacing: 3px; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .page-title-section h2 { margin: 8px 0 0 0; font-size: 15px; font-weight: 800; color: #94a3b8; letter-spacing: 6px; text-transform: uppercase; }
 
-        .admin-toolbar { display: none; flex-direction: row; flex-wrap: wrap; background: #718096; padding: 18px 24px; border-radius: 16px; align-items: center; justify-content: center; margin-bottom: 0; border: 1px solid #475569; color: white; box-shadow: 0 10px 30px rgba(113, 128, 150, 0.2); gap: 12px; box-sizing: border-box; width: 100%; }
-        .admin-toolbar span { color: #f8fafc !important; }
-        .admin-toolbar input { padding: 10px 14px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; border-radius: 8px; font-size: 14px; height: 40px; box-sizing: border-box; transition: 0.3s; }
-        .admin-toolbar input:focus { background: rgba(255,255,255,0.25); outline: none; border-color: rgba(255,255,255,0.5); }
-        .admin-toolbar input::placeholder { color: #cbd5e1; }
+        /* 👇 後台控制台：整體留白縮小、間距縮小 */
+        .admin-toolbar { display: none; flex-direction: column; background: #718096; padding: 12px 20px; border-radius: 12px; align-items: center; justify-content: center; margin-bottom: 0; border: 1px solid #475569; color: white; box-shadow: 0 10px 30px rgba(113, 128, 150, 0.2); gap: 8px; box-sizing: border-box; width: 100%; }
+        .admin-toolbar-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; width: 100%; }
+        .admin-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.15); margin: 2px 0; }
+        
+        .admin-toolbar-row span { color: #f8fafc !important; }
+        
+        /* 👇 輸入框與按鈕高度從 40px 縮小為 32px，字體改為 12px */
+        .admin-toolbar-row input { padding: 6px 12px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; border-radius: 6px; font-size: 12px; height: 32px; box-sizing: border-box; transition: 0.3s; }
+        .admin-toolbar-row input:focus { background: rgba(255,255,255,0.25); outline: none; border-color: rgba(255,255,255,0.5); }
+        .admin-toolbar-row input::placeholder { color: #cbd5e1; }
         
         .ann-input { width: 150px; }
         .time-input { width: 110px; }
-        .file-input { width: 180px; color: #cbd5e1; font-size: 13px; border: none !important; background: transparent !important; padding: 0 !important; cursor: pointer; }
+        .file-input { width: 160px; color: #cbd5e1; font-size: 11px; border: none !important; background: transparent !important; padding: 0 !important; cursor: pointer; }
 
-        .admin-toolbar button { padding: 0 16px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); font-size: 14px; height: 40px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; white-space: nowrap; }
-        .admin-toolbar button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .admin-toolbar-row button { padding: 0 12px; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); font-size: 12px; height: 32px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; white-space: nowrap; }
+        .admin-toolbar-row button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         
         .btn-sync { background: var(--primary); color: white; }
         .btn-stats { background: #8e7eb8; color: white; } 
@@ -207,8 +214,10 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(244, 246, 248, 0.85);
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center;
         }
+        #authOverlay.active { display: flex; }
+        
         .auth-box {
             background: rgba(255, 255, 255, 0.95); padding: 45px 50px; border-radius: 24px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08); border: 1px solid rgba(255, 255, 255, 0.5);
@@ -222,6 +231,10 @@
             transition: 0.3s; font-weight: bold; letter-spacing: 4px; color: var(--dark);
         }
         .auth-input:focus { background: #ffffff; border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(212, 122, 97, 0.15); }
+        
+        /* 👇 讓 Enter Code 的提示字單獨變小且精緻 */
+        .auth-input::placeholder { font-size: 14px; font-weight: bold; letter-spacing: 1px; color: #94a3b8; }
+        
         .auth-btn {
             width: 100%; padding: 16px; background: var(--primary); color: white; border: none;
             border-radius: 12px; font-size: 16px; font-weight: 900; cursor: pointer; transition: 0.3s; letter-spacing: 1px;
@@ -232,13 +245,14 @@
             body { padding: 12px 10px; background: #eef2f6; }
             .container { padding: 0; gap: 12px; }
             .page-footer { order: 100; }
-            .admin-toolbar { flex-direction: column; flex-wrap: wrap; padding: 20px 15px; margin: 0; white-space: normal; text-align: center; }
             
-            .admin-toolbar span { text-align: center; width: 100%; display: block; margin: 0 auto !important; }
-            .admin-toolbar input { width: 100% !important; box-sizing: border-box; height: 32px !important; padding: 6px 12px !important; font-size: 13px; }
+            .admin-toolbar { padding: 16px 12px; }
+            .admin-toolbar-row { flex-direction: column; gap: 8px; width: 100%; }
+            .admin-toolbar-row span, .admin-toolbar-row label { text-align: center; justify-content: center; width: 100%; display: flex; margin: 0; }
+            .admin-toolbar-row input { width: 100% !important; box-sizing: border-box; height: 32px !important; padding: 6px 10px !important; font-size: 12px; }
+            .admin-toolbar-row button { width: 100%; padding: 6px; font-size: 13px; height: 32px; }
             
-            .file-input { display: block; margin: 8px auto 12px auto !important; width: 220px !important; text-align: left; }
-            .admin-toolbar button { width: 100%; padding: 8px; font-size: 14px; margin-bottom: 5px; height: 36px; }
+            .file-input { display: block; margin: 0 auto !important; width: 100% !important; text-align: center; }
             
             .announcement-row { flex-direction: column; gap: 15px; align-items: center; text-align: center; }
             .cash-info { font-size: 20px; justify-content: center; width: 100%; }
@@ -289,7 +303,7 @@
 <body>
 
     <!-- 密碼解鎖畫面 -->
-    <div id="authOverlay">
+    <div id="authOverlay" class="active">
         <div class="auth-box">
             <h1>午餐吃什麼</h1>
             <p>請輸入團主的通關密碼</p>
@@ -298,7 +312,8 @@
         </div>
     </div>
 
-    <div class="container" id="mainContainer" style="display: none;">
+    <!-- 主系統畫面 -->
+    <div class="container" id="mainContainer">
         
         <div class="page-title-section">
             <h1>午餐吃什麼</h1>
@@ -306,15 +321,31 @@
         </div>
 
         <div class="admin-toolbar" id="adminToolbar">
-            <span style="font-weight:bold; color:white; font-size: 15px;">👑 團主：</span>
-            <input type="text" id="annInput" class="ann-input" placeholder="修改公告...">
-            <input type="text" id="timeInput" class="time-input" placeholder="時間(10:30)">
-            <button type="button" class="btn-sync" style="background:#5c8eb5; color: white;" onclick="updateAnnouncement()">同步</button>
-            <span style="font-weight:bold; font-size:14px; color: #f8fafc; margin-left: 5px;">上傳菜單：</span>
-            <input type="file" accept="image/*" class="file-input" onchange="uploadMenu(this)">
-            <button type="button" class="btn-stats" onclick="showStats()">統計</button>
-            <button type="button" class="btn-clear" onclick="clearOrders()">淨空</button>
-            <button type="button" id="lockSystemBtn" class="btn-sync" onclick="toggleOrderLock()">開放</button>
+            <!-- 團主第一排功能 -->
+            <div class="admin-toolbar-row">
+                <!-- 👇 文字縮小至 13px -->
+                <span style="font-weight:bold; font-size: 13px;">團主：</span>
+                <input type="text" id="annInput" class="ann-input" placeholder="修改公告...">
+                <input type="text" id="timeInput" class="time-input" placeholder="時間(10:30)">
+                <button type="button" class="btn-sync" style="background:#5c8eb5;" onclick="updateAnnouncement()">同步</button>
+                <span style="font-weight:bold; font-size:12px; margin-left: 5px;">上傳菜單：</span>
+                <input type="file" accept="image/*" class="file-input" onchange="uploadMenu(this)">
+                <button type="button" class="btn-stats" onclick="showStats()">統計</button>
+                <button type="button" class="btn-clear" onclick="clearOrders()">淨空</button>
+                <button type="button" id="lockSystemBtn" class="btn-sync" onclick="toggleOrderLock()">開放</button>
+            </div>
+            
+            <div class="admin-divider"></div>
+            
+            <!-- 團主第二排功能：動態設定密碼保護 -->
+            <div class="admin-toolbar-row">
+                <span style="font-weight:bold; font-size: 12px;">🔒 密碼保護：</span>
+                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 12px; margin-right: 8px; color: white;">
+                    <input type="checkbox" id="authEnableCheck" style="width: 14px; height: 14px; margin: 0; cursor: pointer;"> 啟用
+                </label>
+                <input type="text" id="authPasswordInput" class="ann-input" placeholder="設定密碼 (例:8888)">
+                <button type="button" class="btn-sync" style="background:#5c8eb5;" onclick="updateAuthSettings()">儲存密碼設定</button>
+            </div>
         </div>
         
         <div class="status-banner">
@@ -343,7 +374,6 @@
                 * 若點購多項餐點，請使用「+」號隔開（例：肉燥飯+蛋花湯）。
             </div>
             
-            <!-- 👇 標題的絕對對齊網格 -->
             <div class="desktop-labels-container" style="display: flex; width: 100%; margin-bottom: 6px;">
                 <div style="width: 18%; padding-left: 14px; box-sizing: border-box; font-size: 12px; font-weight: 800; color: #64748b;">姓名</div>
                 <div style="width: 36%; padding-left: 14px; box-sizing: border-box; font-size: 12px; font-weight: 800; color: #64748b;">品項</div>
@@ -352,7 +382,6 @@
                 <div style="width: 24%; box-sizing: border-box;"></div> 
             </div>
             
-            <!-- 👇 輸入框的絕對對齊網格 (使用與表格相同的 100% 寬度比例) -->
             <div class="form-inputs-container" style="display: flex; width: 100%; align-items: center;">
                 <div style="width: 18%; padding-right: 10px; box-sizing: border-box;">
                     <label class="mobile-only-label">姓名</label>
@@ -424,19 +453,25 @@
     </div>
 
     <script>
-        // 👇 將密碼改為 localStorage (長期記憶)，輸入一次後免再輸入
-        const SECRET_OFFICE_CODE = "8888"; 
+        const SECRET_CODE_KEY = "officePasscode";
+        let currentPassword = "8888"; 
+        let isAuthEnabled = false;
 
         const firebaseConfig = { databaseURL: "https://test-order-system-default-rtdb.firebaseio.com/" };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const database = firebase.database();
 
         let myId = Math.random().toString(36).substr(2, 9);
         try {
             if (window.localStorage) {
                 let savedId = localStorage.getItem('myDeviceId');
-                if (savedId) { myId = savedId; }
-                else { localStorage.setItem('myDeviceId', myId); }
+                if (savedId) { 
+                    myId = savedId; 
+                } else { 
+                    localStorage.setItem('myDeviceId', myId); 
+                }
             }
         } catch(e) {}
         
@@ -444,16 +479,78 @@
         let isOrderLocked = false;
         let statsTextForCopy = "";
 
-        // 👇 驗證邏輯改為使用 localStorage
+        database.ref('config/authSettings').on('value', (s) => {
+            const val = s.val() || { enabled: false, password: "8888" };
+            isAuthEnabled = val.enabled === true; 
+            currentPassword = val.password || "8888";
+            
+            const checkEl = document.getElementById('authEnableCheck');
+            const passEl = document.getElementById('authPasswordInput');
+            if (checkEl) checkEl.checked = isAuthEnabled;
+            if (passEl) passEl.value = currentPassword;
+
+            verifyAccess();
+        });
+
+        function verifyAccess() {
+            if (!isAuthEnabled) {
+                document.getElementById('authOverlay').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'flex';
+            } else {
+                let savedPasscode = "";
+                try { 
+                    if(window.localStorage) {
+                        savedPasscode = localStorage.getItem(SECRET_CODE_KEY); 
+                    }
+                } catch(e){}
+                
+                if (savedPasscode === currentPassword && currentPassword !== "") {
+                    document.getElementById('authOverlay').style.display = 'none';
+                    document.getElementById('mainContainer').style.display = 'flex';
+                } else {
+                    document.getElementById('mainContainer').style.display = 'none';
+                    document.getElementById('authOverlay').style.display = 'flex';
+                }
+            }
+        }
+
+        function checkPasscode() {
+            const input = document.getElementById('passcodeInput').value;
+            if(input === currentPassword && currentPassword !== "") {
+                try { 
+                    if(window.localStorage) {
+                        localStorage.setItem(SECRET_CODE_KEY, input); 
+                    }
+                } catch(e){}
+                verifyAccess();
+            } else {
+                alert("通關密碼錯誤喔！請確認後再試一次。");
+                document.getElementById('passcodeInput').value = '';
+            }
+        }
+
+        function updateAuthSettings() {
+            const enabled = document.getElementById('authEnableCheck').checked;
+            const password = document.getElementById('authPasswordInput').value.trim();
+            
+            if (enabled && password === "") {
+                alert("啟用密碼保護時，請務必設定密碼喔！");
+                return;
+            }
+
+            database.ref('config/authSettings').update({
+                enabled: enabled,
+                password: password
+            }).then(() => {
+                alert("密碼安全設定已更新完畢！");
+            }).catch(err => {
+                alert("更新失敗：" + err.message);
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             try {
                 if (window.localStorage) {
-                    let savedPasscode = localStorage.getItem('officePasscode');
-                    if(savedPasscode === SECRET_OFFICE_CODE) {
-                        document.getElementById('authOverlay').style.display = 'none';
-                        document.getElementById('mainContainer').style.display = 'flex';
-                    }
-                    
                     let savedName = localStorage.getItem('myLunchName');
                     if(savedName) {
                         document.getElementById('userName').value = savedName;
@@ -461,19 +558,6 @@
                 }
             } catch(e) {}
         });
-
-        function checkPasscode() {
-            const input = document.getElementById('passcodeInput').value;
-            if(input === SECRET_OFFICE_CODE) {
-                // 👇 存入 localStorage，永久記住該裝置
-                try { if(window.localStorage) localStorage.setItem('officePasscode', input); } catch(e){}
-                document.getElementById('authOverlay').style.display = 'none';
-                document.getElementById('mainContainer').style.display = 'flex';
-            } else {
-                alert("通關密碼錯誤喔！請確認後再試一次。");
-                document.getElementById('passcodeInput').value = '';
-            }
-        }
 
         function formatItemName(str) {
             if (!str) return "";
@@ -673,15 +757,29 @@
             });
         }
         
-        function markPaid(id) { database.ref('orders').child(id).update({ isPaid: true }); }
-        function settleChange(id) { database.ref('orders').child(id).update({ changeSettled: true }); }
-        function startEdit(id) { editingId = id; database.ref('orders').once('value', (s) => renderTable(s.val())); }
-        function cancelEdit() { editingId = null; database.ref('orders').once('value', (s) => renderTable(s.val())); }
+        function markPaid(id) { 
+            database.ref('orders').child(id).update({ isPaid: true }); 
+        }
+        
+        function settleChange(id) { 
+            database.ref('orders').child(id).update({ changeSettled: true }); 
+        }
+        
+        function startEdit(id) { 
+            editingId = id; 
+            database.ref('orders').once('value', (s) => renderTable(s.val())); 
+        }
+        
+        function cancelEdit() { 
+            editingId = null; 
+            database.ref('orders').once('value', (s) => renderTable(s.val())); 
+        }
 
         function saveEdit(id) {
             const elItem = document.getElementById(`editItem_${id}`);
             const elPrice = document.getElementById(`editPrice_${id}`);
             const elPay = document.getElementById(`editPay_${id}`);
+            
             if (!elItem) return;
             editingId = null;
 
@@ -704,7 +802,9 @@
             
             let tNeed = 0, tGet = 0, tUnpaid = 0;
             let isAdminMode = false;
-            try { isAdminMode = document.getElementById('adminToggle').checked; } catch(e) {}
+            try { 
+                isAdminMode = document.getElementById('adminToggle').checked; 
+            } catch(e) {}
 
             if (orders && typeof orders === 'object') {
                 Object.keys(orders).forEach(id => {
@@ -724,67 +824,100 @@
                     const changeText = changeAmt > 0 ? `<span style="color:var(--danger); font-weight:900; font-size:16px;">${changeAmt}</span>` : `<span style="color:#94a3b8; font-weight:bold; font-size:16px;">0</span>`;
 
                     if (o.isPaid) {
-                        if (changeAmt <= 0 || o.changeSettled) tGet += price;
-                        else tGet += pay;
+                        if (changeAmt <= 0 || o.changeSettled) {
+                            tGet += price;
+                        } else {
+                            tGet += pay;
+                        }
 
                         if (isEditing) {
-                            paidBody.innerHTML += `<tr>
-                                <td><strong>${o.name || ""}</strong></td>
-                                <td><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
-                                <td><input type="number" id="editPrice_${id}" class="inline-input" value="${price}" style="width:100%"></td>
-                                <td><input type="number" id="editPay_${id}" class="inline-input" value="${pay}" style="width:100%"></td>
-                                <td>編輯中</td>
-                                <td><div class="action-btns"><button type="button" class="btn-save" onclick="saveEdit('${id}')">💾</button><button type="button" class="btn-del" onclick="cancelEdit()">✕</button></div></td>
-                            </tr>`;
+                            paidBody.innerHTML += `
+                                <tr>
+                                    <td><strong>${o.name || ""}</strong></td>
+                                    <td><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
+                                    <td><input type="number" id="editPrice_${id}" class="inline-input" value="${price}" style="width:100%"></td>
+                                    <td><input type="number" id="editPay_${id}" class="inline-input" value="${pay}" style="width:100%"></td>
+                                    <td>編輯中</td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button type="button" class="btn-save" onclick="saveEdit('${id}')">💾</button>
+                                            <button type="button" class="btn-del" onclick="cancelEdit()">✕</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
                         } else {
                             let btnHtml = canEdit ? `<button type="button" class="btn-edit" onclick="startEdit('${id}')">修改</button> <button type="button" class="btn-del" onclick="deleteOrder('${id}')">✕</button>` : `<span class="status-icon-only">🔒</span>`;
                             let changeStatusHtml = '';
-                            if (changeAmt <= 0) changeStatusHtml = `<span style="color:var(--success); font-weight:900; font-size:16px;">✓</span>`;
-                            else {
+                            
+                            if (changeAmt <= 0) {
+                                changeStatusHtml = `<span style="color:var(--success); font-weight:900; font-size:16px;">✓</span>`;
+                            } else {
                                 const toggleStatus = !o.changeSettled;
-                                const toggleFn = `database.ref('orders').child('${id}').update({changeSettled: ${toggleStatus}})` ;
-                                if (o.changeSettled) changeStatusHtml = `<span style="color:var(--success); font-weight:900; cursor:pointer; font-size:16px;" onclick="${toggleFn}">✓</span>`;
-                                else changeStatusHtml = isAdminMode ? `<button type="button" onclick="${toggleFn}" style="background:none; border:none; padding:0; margin:0; color:var(--danger); font-weight:900; font-size:16px; cursor:pointer; font-family:inherit;">${changeAmt}</button>` : `<span style="color:var(--danger); font-weight:900; font-size:16px;">${changeAmt}</span>`;
+                                const toggleFn = `database.ref('orders').child('${id}').update({changeSettled: ${toggleStatus}})`;
+                                
+                                if (o.changeSettled) {
+                                    changeStatusHtml = `<span style="color:var(--success); font-weight:900; cursor:pointer; font-size:16px;" onclick="${toggleFn}">✓</span>`;
+                                } else {
+                                    changeStatusHtml = isAdminMode ? `<button type="button" onclick="${toggleFn}" style="background:none; border:none; padding:0; margin:0; color:var(--danger); font-weight:900; font-size:16px; cursor:pointer; font-family:inherit;">${changeAmt}</button>` : `<span style="color:var(--danger); font-weight:900; font-size:16px;">${changeAmt}</span>`;
+                                }
                             }
-                            paidBody.innerHTML += `<tr>
-                                <td><strong>${o.name || ""}</strong></td>
-                                <td style="color:#475569">${safeItem}</td>
-                                <td>${price}</td>
-                                <td style="color:var(--success); font-weight:900;">${pay}</td>
-                                <td>${changeStatusHtml}</td>
-                                <td><div class="action-btns">${btnHtml}</div></td>
-                            </tr>`;
+                            
+                            paidBody.innerHTML += `
+                                <tr>
+                                    <td><strong>${o.name || ""}</strong></td>
+                                    <td style="color:#475569">${safeItem}</td>
+                                    <td>${price}</td>
+                                    <td style="color:var(--success); font-weight:900;">${pay}</td>
+                                    <td>${changeStatusHtml}</td>
+                                    <td><div class="action-btns">${btnHtml}</div></td>
+                                </tr>
+                            `;
                         }
                     } else {
                         tUnpaid += price;
                         if (isEditing) {
-                            unpaidBody.innerHTML += `<tr>
-                                <td><strong>${o.name || ""}</strong></td>
-                                <td><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
-                                <td><input type="number" id="editPrice_${id}" class="inline-input" value="${price}" style="width:100%"></td>
-                                <td><input type="number" id="editPay_${id}" class="inline-input" value="${pay}" style="width:100%"></td>
-                                <td>編輯中</td>
-                                <td><div class="action-btns"><button type="button" class="btn-save" onclick="saveEdit('${id}')">💾</button><button type="button" class="btn-del" onclick="cancelEdit()">✕</button></div></td>
-                            </tr>`;
+                            unpaidBody.innerHTML += `
+                                <tr>
+                                    <td><strong>${o.name || ""}</strong></td>
+                                    <td><input type="text" id="editItem_${id}" class="inline-input" value="${safeItem}"></td>
+                                    <td><input type="number" id="editPrice_${id}" class="inline-input" value="${price}" style="width:100%"></td>
+                                    <td><input type="number" id="editPay_${id}" class="inline-input" value="${pay}" style="width:100%"></td>
+                                    <td>編輯中</td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button type="button" class="btn-save" onclick="saveEdit('${id}')">💾</button>
+                                            <button type="button" class="btn-del" onclick="cancelEdit()">✕</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
                         } else {
                             let btnHtml = '';
                             if (isAdminMode) btnHtml += `<button type="button" class="btn-confirm" onclick="markPaid('${id}')">收款</button> `;
-                            if (canEdit) btnHtml += `<button type="button" class="btn-edit" onclick="startEdit('${id}')">修改</button> <button type="button" class="btn-del" onclick="deleteOrder('${id}')">✕</button>`;
-                            else btnHtml += `<span class="status-icon-only">🔒</span>`;
-                            unpaidBody.innerHTML += `<tr>
-                                <td><strong>${o.name || ""}</strong></td>
-                                <td style="color:#475569">${safeItem}</td>
-                                <td>${price}</td>
-                                <td style="color:#94a3b8">${pay}</td>
-                                <td>${changeText}</td>
-                                <td><div class="action-btns">${btnHtml}</div></td>
-                            </tr>`;
+                            if (canEdit) {
+                                btnHtml += `<button type="button" class="btn-edit" onclick="startEdit('${id}')">修改</button> <button type="button" class="btn-del" onclick="deleteOrder('${id}')">✕</button>`;
+                            } else {
+                                btnHtml += `<span class="status-icon-only">🔒</span>`;
+                            }
+                            
+                            unpaidBody.innerHTML += `
+                                <tr>
+                                    <td><strong>${o.name || ""}</strong></td>
+                                    <td style="color:#475569">${safeItem}</td>
+                                    <td>${price}</td>
+                                    <td style="color:#94a3b8">${pay}</td>
+                                    <td>${changeText}</td>
+                                    <td><div class="action-btns">${btnHtml}</div></td>
+                                </tr>
+                            `;
                         }
                     }
                 });
             }
-            document.getElementById('totalNeed').innerText = tNeed;
-            document.getElementById('totalGet').innerText = tGet;
+            
+            document.getElementById('totalNeed').innerText = tNeed; 
+            document.getElementById('totalGet').innerText = tGet; 
             document.getElementById('totalUnpaid').innerText = tUnpaid; 
         }
 
@@ -802,34 +935,46 @@
         function showStats() {
             database.ref('orders').once('value', (s) => {
                 const orders = s.val(); 
-                const stats = {}; let total = 0; let totalAmt = 0;
+                const stats = {}; 
+                let total = 0; 
+                let totalAmt = 0;
+                
                 statsTextForCopy = "【今日點餐清單】\n\n";
 
                 if(orders) {
                     let orderList = Object.values(orders);
                     let processedItems = [];
+                    
                     for(let i = 0; i < orderList.length; i++) {
                         let currentItem = (orderList[i].item || "").trim();
                         let currentName = orderList[i].name || "";
+                        
                         totalAmt += parseInt(orderList[i].price) || 0;
+
                         let hasLeft = (currentItem.includes('(') || currentItem.includes('（'));
                         let hasRight = (currentItem.includes(')') || currentItem.includes('）'));
+                        
                         if (hasLeft && !hasRight && i + 1 < orderList.length && orderList[i+1].name === currentName) {
                             currentItem = currentItem + "、" + (orderList[i+1].item || "").trim();
                             i++; 
                         }
+                        
                         processedItems.push({ name: currentName, item: currentItem });
                     }
+                    
                     processedItems.forEach(o => { 
                         o.item.split(/[+＋]/).forEach(singleItem => {
                             let originalName = singleItem.trim();
                             if(originalName) { 
                                 let formatName = formatItemName(originalName);
                                 const normKey = formatName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '');
+                                
                                 if (!normKey) return; 
+                                
                                 if (!stats[normKey]) {
                                     stats[normKey] = { displayName: formatName, count: 0, users: [] };
                                 }
+                                
                                 stats[normKey].count++;
                                 if (!stats[normKey].users.includes(o.name)) {
                                     stats[normKey].users.push(o.name);
@@ -863,6 +1008,7 @@
                         <span class="stats-user-names">&nbsp;&nbsp;&nbsp;${v.users.join('、')}</span>
                     </div>
                 `).join('');
+                
                 document.getElementById('statsModal').style.display = 'block'; 
                 document.getElementById('modalOverlay').style.display = 'block';
             });
@@ -885,9 +1031,18 @@
             alert("已複製到剪貼簿，可直接貼到 LINE 給店家！");
         }
 
-        function closeModal() { document.getElementById('statsModal').style.display = 'none'; document.getElementById('modalOverlay').style.display = 'none'; }
-        function deleteOrder(id) { if(confirm("確定刪除？")) database.ref('orders').child(id).remove(); }
-        function clearOrders() { if(confirm("確定清空所有數據？")) database.ref('orders').remove(); }
+        function closeModal() { 
+            document.getElementById('statsModal').style.display = 'none'; 
+            document.getElementById('modalOverlay').style.display = 'none'; 
+        }
+        
+        function deleteOrder(id) { 
+            if(confirm("確定刪除？")) database.ref('orders').child(id).remove(); 
+        }
+        
+        function clearOrders() { 
+            if(confirm("確定清空所有數據？")) database.ref('orders').remove(); 
+        }
     </script>
 </body>
 </html>
