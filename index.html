@@ -62,6 +62,23 @@
         .announcement-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .cash-info { font-size: 18px; font-weight: 900; color: #2c3e50; display: flex; align-items: center; gap: 10px; } 
         
+        /* 👇 替換為銀白色質感喇叭圖示所需的樣式 */
+        .speaker-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(145deg, #d8dee9, #b8bfca);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 14px;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 2px 4px rgba(0,0,0,0.1);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            margin-right: 2px;
+            font-family: Arial, sans-serif; /* 確保 📣 能在自定義背景中正確顯示 */
+        }
+
         .time-info-wrapper { display: flex; align-items: center; }
         .time-info { display: flex; align-items: baseline; color: #b91c1c; background: #ffffff; padding: 6px 16px; border-radius: 12px; white-space: nowrap; border: 1px solid rgba(254, 202, 202, 0.4); box-shadow: 0 2px 8px rgba(0,0,0,0.02); } 
         .time-label { font-size: 13px; font-weight: 800; opacity: 0.9; }
@@ -95,7 +112,6 @@
             font-weight: bold;
         }
 
-        /* 👇 修改此處：padding-left 和 right 改為 10px，修復文字出框與對齊問題 */
         .form-box, .inline-input { 
             width: 100%; 
             padding: 14px 10px; 
@@ -125,21 +141,18 @@
         
         .table-container h3 { margin-top: 0; padding-bottom: 15px; font-size: 20px; font-weight: 900; }
         
-        /* 👇 統一設定點餐區標題字體大小為 13px */
         .desktop-labels { display: flex; width: 100%; margin-bottom: 10px; font-weight: 800; font-size: 13px; color: #64748b; text-align: left; letter-spacing: 0.5px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
         
-        /* 👇 統一設定表格標題字體大小為 13px */
         th { position: sticky; top: 0; z-index: 10; text-align: left; background: #f8fafc; padding: 16px 10px; border-bottom: 2px solid #e2e8f0; color: #64748b; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; box-sizing: border-box; }
         td { padding: 18px 10px; border-bottom: 1px solid #f1f5f9; font-size: 16px; white-space: nowrap; box-sizing: border-box; text-align: left; transition: 0.2s; }
         tbody tr:hover td { background-color: #fafcfd; }
         
-        /* 👇 重新分配精準寬度，保證垂直對齊且不斷字 */
         th:nth-child(1), td:nth-child(1) { width: 20%; padding-right: 15px; } 
         th:nth-child(2), td:nth-child(2) { width: 34%; padding-right: 15px; white-space: normal; word-break: break-all; font-weight: bold; } 
         th:nth-child(3), td:nth-child(3) { width: 12%; padding-right: 10px; } 
         th:nth-child(4), td:nth-child(4) { width: 12%; padding-right: 10px; } 
-        th:nth-child(5), td:nth-child(5) { width: 10%; text-align: left; } /* 找零統一靠左對齊，保證格線完美 */
+        th:nth-child(5), td:nth-child(5) { width: 10%; text-align: left; }
         th:nth-child(6), td:nth-child(6) { width: 12%; text-align: right; } 
 
         .action-btns { display: flex; gap: 6px; flex-wrap: nowrap; justify-content: flex-end; align-items: center; }
@@ -193,7 +206,9 @@
             .admin-toolbar button { width: 100%; padding: 8px; font-size: 14px; margin-bottom: 5px; height: 36px; }
             
             .announcement-row { flex-direction: column; gap: 15px; align-items: center; text-align: center; }
-            .cash-info { font-size: 18px; }
+            .cash-info { font-size: 18px; justify-content: center; width: 100%; }
+            .speaker-icon { width: 22px; height: 22px; font-size: 12px; } /* 手機端縮小一點喇叭背景 */
+
             .time-info-wrapper { justify-content: center; width: 100%; }
             .time-info { padding: 8px 16px; }
             .dashboard { flex-direction: column; gap: 12px; }
@@ -253,7 +268,8 @@
         
         <div class="status-banner">
             <div class="announcement-row">
-                <div id="announceText" class="cash-info"><span style="font-size: 0.85em;">📢</span> 收現金 / 收 LINE Pay</div>
+                <!-- 👇 喇叭圖示套用銀白色質感背景樣式 -->
+                <div id="announceText" class="cash-info"><span class="speaker-icon">📣</span> 收現金 / 收 LINE Pay</div>
                 <div class="time-info-wrapper">
                     <div class="time-info">
                         <span class="time-label">截止時間</span>
@@ -278,7 +294,6 @@
             </div>
             
             <div class="desktop-labels">
-                <!-- 👇 統一套用全新精準寬度，並加入 padding-left: 10px 讓標題與文字起點完美對齊 -->
                 <div style="width: 20%; padding-left: 10px; box-sizing: border-box;">姓名</div>
                 <div style="width: 34%; padding-left: 10px; box-sizing: border-box;">品項</div>
                 <div style="width: 12%; padding-left: 10px; box-sizing: border-box;">應付</div>
@@ -380,7 +395,7 @@
             res = res.replace(/（/g, '(').replace(/）/g, ')'); 
             res = res.replace(/[\-\/\\、]/g, '_'); 
             res = res.replace(/\s/g, ''); 
-            res = res.replace(/[0-9０-９]/g, '');
+            res = res.replace(/[0-9點０-９]/g, '');
             res = res.replace(/_+/g, '_'); 
             res = res.replace(/_+$/g, '').replace(/^_+/g, ''); 
             res = res.replace(/_\+/g, '+').replace(/\+_/g, '+'); 
@@ -499,7 +514,8 @@
 
         database.ref('config/announcement').on('value', (s) => {
             const val = s.val() || { text: "收現金 / 收 LINE Pay", deadline: "未設定" };
-            document.getElementById('announceText').innerHTML = `<span style="font-size: 0.85em;">📢</span> ` + val.text;
+            // 👇 保持 JS 動態更新公告內容時的 HTML 結構，確保喇叭圖示樣式
+            document.getElementById('announceText').innerHTML = `<span class="speaker-icon">📣</span> ` + val.text;
             document.getElementById('timeText').innerText = val.deadline;
         });
         
